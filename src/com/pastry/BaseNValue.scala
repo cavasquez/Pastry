@@ -53,6 +53,31 @@ class BaseNValue(base10Val:Long, base:Int = 10)
 	}
 	
 	/**
+	 * Returns the length longest common prefix between x and y according to the 
+	 * base. This method assumes that x and y contain the same number of digits
+	 * @param x		input 1
+	 * @param y		input 2 (defaults to the current base10Val)
+	 * @param base	the base of x and y
+	 * @return		length of the longest common prefix between x and y
+	 */
+	def longestMatchingPrefix(x:Long, y:Long = base10Val, base:Int = base):Int = 
+	{
+	  var uncommonPrefixFound = false
+	  val length = numOfDigits(x, base)
+	  var i:Int = length - 1
+	  var power:Long = 0
+	  
+	  while(!uncommonPrefixFound && i >= 0)
+	  {
+	    power = Math.pow(base, i).toLong
+	    if((x/power).toInt != (y/power).toInt) uncommonPrefixFound = true
+	    else i -= 1
+	  }
+	  
+	  return length - i - 1
+	}
+	
+	/**
 	 * Returns the string representation of value. Each digit is separated by 
 	 * the '|' character and prefixed with "yx" where y is the value of the base
 	 * @param value		the value whose string is being returned

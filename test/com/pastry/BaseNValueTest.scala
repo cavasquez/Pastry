@@ -85,4 +85,13 @@ class BaseNValueTest extends AssertionsForJUnit
 	  test = new BaseNValue(base10Val = 15387, base = 10)
 	  assertEquals("10x1|5|3|8|7", test.toString())
 	}
+	
+	@Test
+	def longestCommonPrefixTest() =
+	{
+	  assertEquals(5, test.numOfDigits(23501, 10))
+	  assertEquals(3, test.longestMatchingPrefix(23501, 23558, 10))
+	  assertEquals(0, test.longestMatchingPrefix(123456, 563215, 10))
+	  assertEquals(4, test.longestMatchingPrefix(245, 255, 2))
+	}
 }
