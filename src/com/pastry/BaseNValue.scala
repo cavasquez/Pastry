@@ -5,7 +5,7 @@ package com.pastry
 
 class BaseNValue(base10Val:Long, base:Int = 10)
 {
-	private var value = makeValue()
+	private lazy val value = makeValue()
   
 	/**
 	 * Makes the base_base value of the provided base10Val in little-endian
