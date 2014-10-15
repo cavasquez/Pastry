@@ -6,6 +6,7 @@ import org.junit.Before
 import akka.actor.ActorRef
 import org.scalatest.junit.AssertionsForJUnit
 import java.lang.ArrayIndexOutOfBoundsException
+
 /**
  * Tests com.bitcoin.ShaHasher
  */

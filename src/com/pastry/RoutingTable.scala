@@ -54,6 +54,8 @@ class RoutingTable[T:ClassTag](nodeID:Long = 0, b:Int = 4, n:Int = 10, owner:T =
    * It will not attempt to insert node into a "lower" matching spot. It will
    * only be inserted into the position who matches the prefix id the closest
    * to nodeID.
+   * 
+   * Note: Insert attempts to match the prefix base b, not base 10
    * @param id		The ID of the inserted node.
    * @param node	The node being inserted
    * @returner		Returns whether or not the insert was successful
