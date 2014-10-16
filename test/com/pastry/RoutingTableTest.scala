@@ -14,12 +14,14 @@ class RoutingTableTest extends AssertionsForJUnit
 {
   var test:RoutingTable[String] = null
   var value:BaseNValue = _
+  var root:String = _
   
   @Before
   def initialize() = 
   {
-    value = new BaseNValue(10,10)
-    test = new RoutingTable[String](new BaseNValue(10,10))
+    value = new BaseNValue(19410,4) /* 19410 = 10233102 in base 4 */
+    root = new String("boss")
+    test = new RoutingTable[String](value, b = 2, owner = root)
   }
   
   @Test
@@ -31,6 +33,7 @@ class RoutingTableTest extends AssertionsForJUnit
     assertEquals(10, table(1).size)
     assertEquals(10, table(2).size)
     assertEquals(10, table(3).size)
+    assertEquals(null, table(0)(0))
     
     try 
     { 
@@ -45,10 +48,10 @@ class RoutingTableTest extends AssertionsForJUnit
   }
   
   @Test
-  def makeRoutingTable =
+  def makeRoutingTableTest =
   {
     var temp = new String("not an actorref")
-    var table = test.makeRoutingTable(5,10, value, temp)
+    var table = test.makeRoutingTable(5,10, value, 10, temp)
     assertEquals(null, table)
   }
 }

@@ -95,7 +95,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	 * @param base	the base of the value
 	 * @return		returns the next digit of value following the nth digit.
 	 */
-	def nextDigit(n:Int = 1, value:Long, base:Int = 10):Int =
+	def nextDigit(n:Int, value:Long = base10Val, base:Int = base):Int =
 	{
 	  if(n < 0) throw new IllegalArgumentException("n must be greater than or equal to 0")
 	  if(base < 1) throw new IllegalArgumentException("base must be greater than 0")
@@ -103,7 +103,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	  
 	  val length = numOfDigits(value, base)
 	  var i:Int = length - n
-	  if(i < 1) throw new IllegalArgumentException("n is greater than the number of digits in value")
+	  if(i < 1) throw new IllegalArgumentException("n is greater than or equal to the number of digits in value")
 	  var power:Long = Math.pow(base, i).toLong
 	  var digit:Long = value % power
 	  power = Math.pow(base, i-1).toLong

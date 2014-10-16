@@ -9,12 +9,14 @@ import scala.reflect.ClassTag
  * @param n			The maximum number of nodes in this Pastry network
  * @param owner		The ActorRef of the owning node
  */
-class RoutingTable[T:ClassTag](nodeID:BaseNValue, b:Int = 4, n:Int = 10, owner:T = null)
+class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, owner:T = null)
 {
-  if(b != nodeID.base) throw new IllegalArgumentException("nodeID has a different base than b")
+  if(b < 1) throw new IllegalArgumentException("b must be greater than 0")
   private val rowSize = Math.ceil(Math.log(n)/Math.log(Math.pow(2, b))).toInt
+  if(rowSize < nodeID.numOfDigits()) throw new IllegalArgumentException("n is not big enough to contain the number of digits in nodeID")
   private val colSize = Math.pow(2, b).toInt
-  private val table = makeRoutingTable(rowSize, colSize, nodeID, owner)
+  if(colSize > nodeID.base) throw new IllegalArgumentException("cannot have more columns than the size of the base")
+  private val table = makeRoutingTable(rowSize, colSize, nodeID, b, owner)
   
   /**
    * Creates a routing table of the provided row and column size that contains
@@ -23,13 +25,17 @@ class RoutingTable[T:ClassTag](nodeID:BaseNValue, b:Int = 4, n:Int = 10, owner:T
    * @param colSize	The number of columns in the 2D array 
    * @param nodeID	The node ID of the owner
    * @param	owner	The owning node of this table
+   * @param base	The base used by nodeID
    * @return		Returns a 2D array that represents an initial Routing Table
    * 				for the Pastry protocol
    */
-  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[T]] =
+  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, base:Int, owner:T):Array[Array[T]] =
   {
     var table = makeTable(rowSize, colSize)
-    
+    var j:Int = rowSize
+    if(nodeID.numOfDigits() < rowSize) j = nodeID.numOfDigits()
+    for(i:Int <- 0 until j) { table(i)(nodeID.nextDigit(n = i)) = owner }
+    for(i:Int <- j until rowSize) { table(i)(0) = owner }
     return table
   }
   
@@ -42,7 +48,7 @@ class RoutingTable[T:ClassTag](nodeID:BaseNValue, b:Int = 4, n:Int = 10, owner:T
   def makeTable(rowSize:Int, colSize:Int):Array[Array[T]] =
   {
     var rTable = new Array[Array[T]](rowSize)
-    for(i:Int <- 0 until rowSize)
+    for(i:Int <- 0 to nodeID.numOfDigits())
     {
       for(j:Int <- 0 until colSize) { rTable(i) = new Array[T](colSize) }
     }
