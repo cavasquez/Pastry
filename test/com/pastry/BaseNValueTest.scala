@@ -94,4 +94,58 @@ class BaseNValueTest extends AssertionsForJUnit
 	  assertEquals(0, test.longestMatchingPrefix(123456, 563215, 10))
 	  assertEquals(4, test.longestMatchingPrefix(245, 255, 2))
 	}
+	
+	@Test
+	def nextDigitTest() =
+	{
+	  assertEquals(4, test.nextDigit(3, 1234, 10))
+	  assertEquals(4, test.nextDigit(3, 12345678, 10))
+	  assertEquals(2, test.nextDigit(1, 12345678, 10))
+	  assertEquals(8, test.nextDigit(7, 12345678, 10))
+	  assertEquals(1, test.nextDigit(0, 12345678, 10))
+	  
+	  try 
+	  { 
+		  assertEquals(8, test.nextDigit(8, 12345678, 10))
+		  fail("There cannoot be a digit after the last")
+	  }
+	  catch 
+	  {
+      	case e:IllegalArgumentException =>
+      	case _:Throwable => fail("This should have thrown an IllegalArgumentException")
+	  }
+	  
+	  try 
+	  { 
+		  assertEquals(8, test.nextDigit(8, 12345678, 10))
+		  fail("There cannoot be a digit after the last")
+	  }
+	  catch 
+	  {
+      	case e:IllegalArgumentException =>
+      	case _:Throwable => fail("This should have thrown an IllegalArgumentException")
+	  }
+	  
+	  try 
+	  { 
+		  assertEquals(8, test.nextDigit(-1, 12345678, 10))
+		  fail("There is no negative digit")
+	  }
+	  catch 
+	  {
+      	case e:IllegalArgumentException =>
+      	case _:Throwable => fail("This should have thrown an IllegalArgumentException")
+	  }
+	  
+	  try 
+	  { 
+		  assertEquals(8, test.nextDigit(5, -12345678, 10))
+		  fail("Value cannot be negative")
+	  }
+	  catch 
+	  {
+      	case e:IllegalArgumentException =>
+      	case _:Throwable => fail("This should have thrown an IllegalArgumentException")
+	  }
+	}
 }

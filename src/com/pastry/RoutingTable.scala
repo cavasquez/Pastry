@@ -9,8 +9,9 @@ import scala.reflect.ClassTag
  * @param n			The maximum number of nodes in this Pastry network
  * @param owner		The ActorRef of the owning node
  */
-class RoutingTable[T:ClassTag](nodeID:Long = 0, b:Int = 4, n:Int = 10, owner:T = null)
+class RoutingTable[T:ClassTag](nodeID:BaseNValue, b:Int = 4, n:Int = 10, owner:T = null)
 {
+  if(b != nodeID.base) throw new IllegalArgumentException("nodeID has a different base than b")
   private val rowSize = Math.ceil(Math.log(n)/Math.log(Math.pow(2, b))).toInt
   private val colSize = Math.pow(2, b).toInt
   private val table = makeRoutingTable(rowSize, colSize, nodeID, owner)
@@ -25,7 +26,7 @@ class RoutingTable[T:ClassTag](nodeID:Long = 0, b:Int = 4, n:Int = 10, owner:T =
    * @return		Returns a 2D array that represents an initial Routing Table
    * 				for the Pastry protocol
    */
-  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:Long, owner:T):Array[Array[T]] =
+  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[T]] =
   {
     var table = makeTable(rowSize, colSize)
     

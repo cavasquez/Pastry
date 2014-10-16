@@ -3,7 +3,7 @@
  */
 package com.pastry
 
-class BaseNValue(base10Val:Long, base:Int = 10)
+class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 {
 	private lazy val value = makeValue()
   
@@ -60,7 +60,7 @@ class BaseNValue(base10Val:Long, base:Int = 10)
 	 * @param base	the base of x and y
 	 * @return		length of the longest common prefix between x and y
 	 */
-	def longestMatchingPrefix(x:Long, y:Long = base10Val, base:Int = base):Int = 
+	private[pastry] def longestMatchingPrefix(x:Long, y:Long = base10Val, base:Int = base):Int = 
 	{
 	  var uncommonPrefixFound = false
 	  val length = numOfDigits(x, base)
@@ -75,6 +75,40 @@ class BaseNValue(base10Val:Long, base:Int = 10)
 	  }
 	  
 	  return length - i - 1
+	}
+	
+	/**
+	 * Returns the length of the longest common prefix between x and this object
+	 * according to this objects base. This method assumes that x and this 
+	 * object contain the same number of digits
+	 * @param x the object being compared to this
+	 * @return	the length of the longest common prefix between x and this 
+	 * 			object
+	 */
+	def longestMatchingPrefix(x:BaseNValue):Int = longestMatchingPrefix(x.base10Val, this.base10Val , base)
+	
+	/**
+	 * Returns the next digit of value following the nth digit. n must be 
+	 * greater than 0
+	 * @param n 	the nth digit before the goal digit
+	 * @param value	the value whose nth digit is being found
+	 * @param base	the base of the value
+	 * @return		returns the next digit of value following the nth digit.
+	 */
+	def nextDigit(n:Int = 1, value:Long, base:Int = 10):Int =
+	{
+	  if(n < 0) throw new IllegalArgumentException("n must be greater than or equal to 0")
+	  if(base < 1) throw new IllegalArgumentException("base must be greater than 0")
+	  if(value < 1) throw new IllegalArgumentException("value must be greater than 0")
+	  
+	  val length = numOfDigits(value, base)
+	  var i:Int = length - n
+	  if(i < 1) throw new IllegalArgumentException("n is greater than the number of digits in value")
+	  var power:Long = Math.pow(base, i).toLong
+	  var digit:Long = value % power
+	  power = Math.pow(base, i-1).toLong
+	  digit = digit/power
+	  return digit.toInt
 	}
 	
 	/**

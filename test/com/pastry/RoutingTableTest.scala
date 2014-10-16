@@ -13,10 +13,13 @@ import java.lang.ArrayIndexOutOfBoundsException
 class RoutingTableTest extends AssertionsForJUnit 
 {
   var test:RoutingTable[String] = null
+  var value:BaseNValue = _
+  
   @Before
   def initialize() = 
   {
-    test = new RoutingTable[String]()
+    value = new BaseNValue(10,10)
+    test = new RoutingTable[String](new BaseNValue(10,10))
   }
   
   @Test
@@ -45,7 +48,7 @@ class RoutingTableTest extends AssertionsForJUnit
   def makeRoutingTable =
   {
     var temp = new String("not an actorref")
-    var table = test.makeRoutingTable(5,10, 0, temp)
+    var table = test.makeRoutingTable(5,10, value, temp)
     assertEquals(null, table)
   }
 }
