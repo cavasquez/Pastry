@@ -54,7 +54,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	
 	/**
 	 * Returns the length longest common prefix between x and y according to the 
-	 * base. This method assumes that x and y contain the same number of digits
+	 * base.
 	 * @param x		input 1
 	 * @param y		input 2 (defaults to the current base10Val)
 	 * @param base	the base of x and y
@@ -67,20 +67,22 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	  var i:Int = length - 1
 	  var power:Long = 0
 	  
-	  while(!uncommonPrefixFound && i >= 0)
+	  if(this.numOfDigits(x, base) != this.numOfDigits(y, base)) i = length - 1
+	  else
 	  {
-	    power = Math.pow(base, i).toLong
-	    if((x/power).toInt != (y/power).toInt) uncommonPrefixFound = true
-	    else i -= 1
+	    while(!uncommonPrefixFound && i >= 0)
+		{
+		  power = Math.pow(base, i).toLong
+		  if((x/power).toInt != (y/power).toInt) uncommonPrefixFound = true
+		  else i -= 1
+		}
 	  }
-	  
 	  return length - i - 1
 	}
 	
 	/**
 	 * Returns the length of the longest common prefix between x and this object
-	 * according to this objects base. This method assumes that x and this 
-	 * object contain the same number of digits
+	 * according to this objects base.
 	 * @param x the object being compared to this
 	 * @return	the length of the longest common prefix between x and this 
 	 * 			object

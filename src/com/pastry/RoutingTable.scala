@@ -35,7 +35,6 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
     var j:Int = rowSize
     if(nodeID.numOfDigits() < rowSize) j = nodeID.numOfDigits()
     for(i:Int <- 0 until j) { table(i)(nodeID.nextDigit(n = i)) = owner }
-    for(i:Int <- j until rowSize) { table(i)(0) = owner }
     return table
   }
   
@@ -48,10 +47,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
   def makeTable(rowSize:Int, colSize:Int):Array[Array[T]] =
   {
     var rTable = new Array[Array[T]](rowSize)
-    for(i:Int <- 0 to nodeID.numOfDigits())
-    {
-      for(j:Int <- 0 until colSize) { rTable(i) = new Array[T](colSize) }
-    }
+    for(i:Int <- 0 until rowSize) { rTable(i) = new Array[T](colSize) }
     return rTable
   }
   

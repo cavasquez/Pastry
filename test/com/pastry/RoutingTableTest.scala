@@ -21,7 +21,8 @@ class RoutingTableTest extends AssertionsForJUnit
   {
     value = new BaseNValue(19410,4) /* 19410 = 10233102 in base 4 */
     root = new String("boss")
-    test = new RoutingTable[String](value, b = 2, owner = root)
+    var n = Math.pow(Math.pow(2, 4), 8).toInt
+    test = new RoutingTable[String](value, n = n, b = 2, owner = root)
   }
   
   @Test

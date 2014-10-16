@@ -93,6 +93,7 @@ class BaseNValueTest extends AssertionsForJUnit
 	  assertEquals(3, test.longestMatchingPrefix(23501, 23558, 10))
 	  assertEquals(0, test.longestMatchingPrefix(123456, 563215, 10))
 	  assertEquals(4, test.longestMatchingPrefix(245, 255, 2))
+	  assertEquals(0, test.longestMatchingPrefix(1245, 255, 2))
 	}
 	
 	@Test
