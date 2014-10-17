@@ -16,7 +16,8 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
   if(rowSize < nodeID.numOfDigits()) throw new IllegalArgumentException("n is not big enough to contain the number of digits in nodeID")
   private val colSize = Math.pow(2, b).toInt
   if(colSize > nodeID.base) throw new IllegalArgumentException("cannot have more columns than the size of the base")
-  private val table = makeRoutingTable(rowSize, colSize, nodeID, b, owner)
+  private val table = makeRoutingTable(rowSize, colSize, nodeID, owner)
+  private lazy val diff = if(rowSize >= nodeID.numOfDigits()) rowSize - nodeID.numOfDigits() else 0
   
   /**
    * Creates a routing table of the provided row and column size that contains
@@ -25,16 +26,14 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param colSize	The number of columns in the 2D array 
    * @param nodeID	The node ID of the owner
    * @param	owner	The owning node of this table
-   * @param base	The base used by nodeID
    * @return		Returns a 2D array that represents an initial Routing Table
    * 				for the Pastry protocol
    */
-  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, base:Int, owner:T):Array[Array[T]] =
+  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[T]] =
   {
-    var table = makeTable(rowSize, colSize)
-    var j:Int = rowSize
-    if(nodeID.numOfDigits() < rowSize) j = nodeID.numOfDigits()
-    for(i:Int <- 0 until j) { table(i)(nodeID.nextDigit(n = i)) = owner }
+    var table = makeTable(rowSize, colSize)  
+    for(i:Int <- rowSize-1 to diff by -1) { table(i)(nodeID.nextDigit(n = i - diff + 1)) = owner }
+    for(i:Int <- diff - 1 to 0 by -1) { table(i)(0) = owner }
     return table
   }
   
@@ -63,8 +62,25 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param node	The node being inserted
    * @returner		Returns whether or not the insert was successful
    */
-  def insertNode(id:Int, node:T):Boolean =
+  def insertNode(table:RoutingTable[T] = this, id:BaseNValue, node:T):Boolean =
   {
-    return false
+    val prefix = nodeID.longestMatchingPrefix(id)
+    var row = rowSize - diff + prefix
+    var col:Int = 0
+    var inserted:Boolean = true
+    
+    /* Check to see if there are a differing number of digits. If this is the
+     * case, "imagine" leading zeroes and match those digits according to the
+     * number of rows available. */
+    if(nodeID.numOfDigits() < id.numOfDigits())
+    {
+      row = rowSize - id.numOfDigits()
+      if(row < 0) row = 0
+      col = 0
+    }
+    else if(nodeID.numOfDigits() > id.numOfDigits()) col = 0
+    else col = id.nextDigit(n = prefix)
+    if(table.table(row)(col) == null) table.table(row)(col) = node else inserted = false
+    return inserted
   }
 }
