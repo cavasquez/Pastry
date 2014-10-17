@@ -23,4 +23,9 @@ case class PastryMessage(message:Content, key:Long) extends Message
  */
 trait Content extends Message
 
-case class PNode[T:ClassTag](id:BaseNValue, node:T) extends Message
+/**
+ * Contains a node and it's id.
+ * @param id	the id of the node
+ * @param node	the node
+ */
+case class Route[T:ClassTag](id:BaseNValue, node:T) extends Message

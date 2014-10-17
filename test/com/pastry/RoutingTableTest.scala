@@ -53,7 +53,7 @@ class RoutingTableTest extends AssertionsForJUnit
   def makeRoutingTableTest =
   {
     var temp = new String("not an actorref")
-    value = new BaseNValue(19410,4) /* 19410 = 10233102 in base 4 */
+    value = new BaseNValue(19410,4) /* 19410 = 10233102 in base 4 (8 digits) */
     var table = test.makeRoutingTable(8,4, value, temp)
     assertEquals(temp, table(0)(1).node)
     assertEquals(temp, table(1)(0).node)
@@ -64,7 +64,7 @@ class RoutingTableTest extends AssertionsForJUnit
     assertEquals(temp, table(6)(0).node)
     assertEquals(temp, table(7)(2).node)
     
-    value = new BaseNValue(7122,4) /* 19410 = 1233102 in base 4 */
+    value = new BaseNValue(7122,4) /* 19410 = 1233102 in base 4 (7 digits) */
     table = test.makeRoutingTable(8,4, value, temp)
     assertEquals(temp, table(0)(0).node)
     assertEquals(temp, table(1)(1).node)
@@ -75,8 +75,8 @@ class RoutingTableTest extends AssertionsForJUnit
     assertEquals(temp, table(6)(0).node)
     assertEquals(temp, table(7)(2).node)
     
-    value = new BaseNValue(65538,4) /* 65538 = 100000002 in base 4 */
-    table = test.makeRoutingTable(8,4, value, temp)
+    value = new BaseNValue(65538,4) /* 65538 = 100000002 in base 4 (9 digits) */
+    table = test.makeRoutingTable(8,4, value, temp)    
     assertEquals(temp, table(0)(0).node)
     assertEquals(temp, table(1)(0).node)
     assertEquals(temp, table(2)(0).node)
