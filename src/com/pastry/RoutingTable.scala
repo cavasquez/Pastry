@@ -29,11 +29,11 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @return		Returns a 2D array that represents an initial Routing Table
    * 				for the Pastry protocol
    */
-  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[T]] =
+  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[PNode[T]]] =
   {
     var table = makeTable(rowSize, colSize)  
-    for(i:Int <- rowSize-1 to diff by -1) { table(i)(nodeID.nextDigit(n = i - diff + 1)) = owner }
-    for(i:Int <- diff - 1 to 0 by -1) { table(i)(0) = owner }
+    for(i:Int <- rowSize-1 to diff by -1) { table(i)(nodeID.nextDigit(n = i - diff )) = new PNode(nodeID, owner) }
+    for(i:Int <- diff - 1 to 0 by -1) { table(i)(0) = new PNode(nodeID, owner) }
     return table
   }
   
@@ -43,10 +43,10 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param colSize	The number of columns in the 2D array 
    * @return 		Returns a 2D array of type T
    */
-  def makeTable(rowSize:Int, colSize:Int):Array[Array[T]] =
+  def makeTable(rowSize:Int, colSize:Int):Array[Array[PNode[T]]] =
   {
-    var rTable = new Array[Array[T]](rowSize)
-    for(i:Int <- 0 until rowSize) { rTable(i) = new Array[T](colSize) }
+    var rTable = new Array[Array[PNode[T]]](rowSize)
+    for(i:Int <- 0 until rowSize) { rTable(i) = new Array[PNode[T]](colSize) }
     return rTable
   }
   
@@ -80,7 +80,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
     }
     else if(nodeID.numOfDigits() > id.numOfDigits()) col = 0
     else col = id.nextDigit(n = prefix)
-    if(table.table(row)(col) == null) table.table(row)(col) = node else inserted = false
+    if(table.table(row)(col) == null) table.table(row)(col) = new PNode(id, node) else inserted = false
     return inserted
   }
 }

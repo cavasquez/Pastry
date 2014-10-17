@@ -1,6 +1,6 @@
-package com.gossip
+package com.pastry
 
-import com.pastry
+import scala.reflect.ClassTag
 
 /**
  * The trait by which each actor will communicate
@@ -22,3 +22,5 @@ case class PastryMessage(message:Content, key:Long) extends Message
  * actual message
  */
 trait Content extends Message
+
+case class PNode[T:ClassTag](id:BaseNValue, node:T) extends Message
