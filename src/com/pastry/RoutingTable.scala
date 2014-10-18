@@ -17,7 +17,6 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
   private val colSize = Math.pow(2, b).toInt
   if(colSize > nodeID.base) throw new IllegalArgumentException("cannot have more columns than the size of the base")
   private val table = makeRoutingTable(rowSize, colSize, nodeID, owner)
-  private lazy val offset = diff(nodeID, rowSize)
     
   /**
    * Creates a routing table of the provided row and column size that contains
@@ -72,30 +71,49 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * 
    * Note: Insert attempts to match the prefix base b, not base 10
    * @param id		The ID of the inserted node.
+   * @param ownID	The ID of the node that "owns" this table
    * @param node	The node being inserted
-   * @param offset	The offset created by the difference in number of digits 
-   * 				of the "owning" id and the row size.
    * @returner		Returns whether or not the insert was successful
    */
-  def insertNode(table:RoutingTable[T] = this, id:BaseNValue, node:T, offset:Int = this.offset):Boolean =
+  def insertNode(table:Array[Array[Route[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID, node:T):Boolean =
   {
     val prefix = nodeID.longestMatchingPrefix(id)
-    var row = rowSize - offset + prefix
+    val rowSize = table.size
+    val offset = diff(ownID, rowSize)
+    var row = offset + prefix
     var col:Int = 0
     var inserted:Boolean = true
     
     /* Check to see if there are a differing number of digits. If this is the
      * case, "imagine" leading zeroes and match those digits according to the
      * number of rows available. */
-    if(nodeID.numOfDigits() < id.numOfDigits())
+    if(ownID.numOfDigits() < id.numOfDigits())
     {
       row = rowSize - id.numOfDigits()
-      if(row < 0) row = 0
-      col = 0
+      /* In this case, node cannot be inserted into the table. Give the last 
+       * position of nodeID */
+      if(row < 0)
+      {
+        row = rowSize - 1 
+    	col = ownID.nextDigit(n = ownID.numOfDigits()-1)
+      }
+      /* In this case, */
+      else col = id.nextDigit(0)
     }
-    else if(nodeID.numOfDigits() > id.numOfDigits()) col = 0
+    else if(ownID.numOfDigits() > id.numOfDigits())
+    {
+      /* node will not fit into the table. Set it to an existing node */
+      if(rowSize < ownID.numOfDigits())
+      {
+        row = rowSize - 1 
+    	col = ownID.nextDigit(n = ownID.numOfDigits()-1)
+      }
+      /* Node fits, set it level with the number of digits in ownID into col 0 */
+      else col = 0
+    }
     else col = id.nextDigit(n = prefix)
-    if(table.table(row)(col) == null) table.table(row)(col) = new Route(id, node) else inserted = false
+    if(table(row)(col) == null) table(row)(col) = new Route(id, node) 
+    else inserted = false
     return inserted
   }
 }
