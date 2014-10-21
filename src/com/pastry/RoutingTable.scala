@@ -4,6 +4,8 @@ import akka.actor.ActorRef
 import scala.reflect.ClassTag
 
 /**
+ * RoutingTable represents the Routing table used by pastry to route to 
+ * neighboring nodes. 
  * @param nodeID	The nodeID of the owning Pastry node
  * @param b			The b value that will be used by this Pastry network
  * @param n			The maximum number of nodes in this Pastry network
@@ -30,13 +32,13 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @return		Returns a 2D array that represents an initial Routing Table
    * 				for the Pastry protocol
    */
-  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[Route[T]]] =
+  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[Node[T]]] =
   {
     var table = makeTable(rowSize, colSize)
     var offset = diff(nodeID, rowSize) /* the offset cannot be less than 0 */
     var difference = rowSize - nodeID.numOfDigits()
-    for(i:Int <- rowSize-1 to offset by -1) { table(i)(nodeID.nextDigit(n = i - difference)) = new Route(nodeID, owner) }
-    for(i:Int <- offset - 1 to 0 by -1) { table(i)(0) = new Route(nodeID, owner) }
+    for(i:Int <- rowSize-1 to offset by -1) { table(i)(nodeID.nextDigit(n = i - difference)) = new Node(nodeID, owner) }
+    for(i:Int <- offset - 1 to 0 by -1) { table(i)(0) = new Node(nodeID, owner) }
     return table
   }
   
@@ -46,10 +48,10 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param colSize	The number of columns in the 2D array 
    * @return 		Returns a 2D array of type T
    */
-  def makeTable(rowSize:Int, colSize:Int):Array[Array[Route[T]]] =
+  def makeTable(rowSize:Int, colSize:Int):Array[Array[Node[T]]] =
   {
-    var rTable = new Array[Array[Route[T]]](rowSize)
-    for(i:Int <- 0 until rowSize) { rTable(i) = new Array[Route[T]](colSize) }
+    var rTable = new Array[Array[Node[T]]](rowSize)
+    for(i:Int <- 0 until rowSize) { rTable(i) = new Array[Node[T]](colSize) }
     return rTable
   }
   
@@ -75,7 +77,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param node	The node being inserted
    * @returner		Returns whether or not the insert was successful
    */
-  def insertNode(table:Array[Array[Route[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID, node:T):Boolean =
+  def insertNode(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID, node:T):Boolean =
   {
     val prefix = nodeID.longestMatchingPrefix(id)
     val rowSize = table.size
@@ -112,7 +114,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
       else col = 0
     }
     else col = id.nextDigit(n = prefix)
-    if(table(row)(col) == null) table(row)(col) = new Route(id, node) 
+    if(table(row)(col) == null) table(row)(col) = new Node(id, node) 
     else inserted = false
     return inserted
   }

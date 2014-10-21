@@ -30,6 +30,7 @@ class RoutingTableTest extends AssertionsForJUnit
   def makeTableTest =
   {
     var table = test.makeTable(5,10)
+    
     assertEquals(5, table.size)
     assertEquals(10, table(0).size)
     assertEquals(10, table(1).size)

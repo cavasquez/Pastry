@@ -134,4 +134,16 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	}
 	
 	override def toString():String = toString(value, base, numOfDigits())
+	
+	def -(that:BaseNValue):Long = base10Val - that.base10Val
+	
+	def +(that:BaseNValue):Long = base10Val + that.base10Val
+	
+	def *(that:BaseNValue):Long = base10Val * that.base10Val
+	
+	def /(that:BaseNValue):Long = base10Val - that.base10Val
+	
+	def <(that:BaseNValue):Boolean = base10Val < that.base10Val
+	
+	def >(that:BaseNValue):Boolean = base10Val > that.base10Val 
 }

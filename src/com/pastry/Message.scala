@@ -24,8 +24,21 @@ case class PastryMessage(message:Content, key:Long) extends Message
 trait Content extends Message
 
 /**
+ * A Route message containing the key of a recipient and a message for the 
+ * recipient
+ * @param key		the key of the recipient
+ * @param message	a message for the recipient
+ */
+case class Route[T:ClassTag](key:BaseNValue, message:Message) extends Message
+
+/**
+ * A forwarded 
+ */
+case class Deliver[T:ClassTag](key:BaseNValue, message:Message) extends Message
+
+/**
  * Contains a node and it's id.
  * @param id	the id of the node
  * @param node	the node
  */
-case class Route[T:ClassTag](id:BaseNValue, node:T) extends Message
+case class Node[T:ClassTag](id:BaseNValue, node:T) extends Message
