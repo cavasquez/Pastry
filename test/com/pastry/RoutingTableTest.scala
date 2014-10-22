@@ -247,4 +247,44 @@ class RoutingTableTest extends AssertionsForJUnit
     assertEquals(null, arr(3)(2))
     assertEquals(parent, arr(3)(3))
   }
+  
+  @Test
+  def findRoutableNodeTest =
+  {
+    value = new BaseNValue(91,4) /* 91 = 1123 in base 4 */
+    root = new String("boss")
+    n = Math.pow(Math.pow(2, 4), 4).toInt
+    test = new RoutingTable[String](value, n = n, b = 2, owner = root)
+    var parent = new Node[String](value, "parent")
+    
+    var A = new Node[String](new BaseNValue(1, 4), "A") /* 1 */
+    var B = new Node[String](new BaseNValue(172, 4), "B") /* 2230 */
+    var C = new Node[String](new BaseNValue(192, 4), "C") /* 3000 */
+    var D = null
+    var E = null
+    var F = null
+    var G = new Node[String](new BaseNValue(81, 4), "G") /* 1101 */
+    var H = null
+    var I = null
+    var J = null
+    var K = new Node[String](new BaseNValue(89, 4), "K") /* 1121 */
+    var L = new Node[String](new BaseNValue(90, 4), "L") /* 1122 */
+    
+    var arr:Array[Array[Node[String]]] = new Array[Array[Node[String]]](4)
+    arr(0) = Array[Node[String]](A, parent, B, C)
+    arr(1) = Array[Node[String]](D, parent, E, F)
+    arr(2) = Array[Node[String]](G, H, parent, I)
+    arr(3) = Array[Node[String]](J, K, L, parent)
+    
+    var findMe = new BaseNValue(82, 4) /* 1102 */
+    assertEquals(G, test.findRouteableNode(findMe, arr, value))
+    findMe = new BaseNValue(81, 4) /* 1101 */
+    assertEquals(G, test.findRouteableNode(findMe, arr, value))
+    findMe = new BaseNValue(181, 4) /* 2311 */
+    assertEquals(B, test.findRouteableNode(findMe, arr, value))
+    findMe = new BaseNValue(84, 4) /* 1110 */
+    assertEquals(null, test.findRouteableNode(findMe, arr, value))
+    findMe = new BaseNValue(165454, 4) /* ? */
+    assertEquals(null, test.findRouteableNode(findMe, arr, value))
+  }
 }
