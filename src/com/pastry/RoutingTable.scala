@@ -150,7 +150,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
     val offset = diff(ownID, rowSize)
     var row = offset + prefix
     var col:Int = 0
-    var removed:Boolean = false
+    var removed:Boolean = true
     
     /* Check to see if there are a differing number of digits. If this is the
      * case, "imagine" leading zeroes and match those digits according to the
@@ -161,11 +161,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
       /* In this case, a node with id cannot exist */
       if(row < 0) removed = false
       /* In this case, col can come from the 0th digit of id */
-      else
-      {
-        col = id.nextDigit(0)
-        removed = true
-      }
+      else col = id.nextDigit(0)
     }
     else if(ownID.numOfDigits() > id.numOfDigits())
     {
@@ -173,17 +169,9 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
       if(rowSize < ownID.numOfDigits()) removed = false
       /* A node with id fits and thus may exist. Set it level with the number 
        * of digits in ownID into col 0 */
-      else
-      {
-        col = 0
-        removed = true
-      }
+      else col = 0
     }
-    else
-    {
-      col = id.nextDigit(n = prefix)
-      removed = true
-    }
+    else col = id.nextDigit(n = prefix)
     
     /* Check if it was possible to remove a node with id (ie, it could exist
      * in this table) */
@@ -206,6 +194,51 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @returner		Returns whether or not the remove was successful
    */
   def remove(node:Node[T]):Boolean = remove(id = node.id)
+  
+  /**
+   * Searches for a node in the table with an id that is prefixed by the 
+   * longest common prefix between id and ownID plus the following digit from
+   * id
+   * @param id		The ID of a node.
+   * @param ownID	The ID of the node that "owns" this table
+   * @returner		Returns a node that is close to id
+   */
+  def findRouteableNode(id:BaseNValue, table:Array[Array[Node[T]]] = table, ownID:BaseNValue = nodeID):Node[T] =
+  {
+    val prefix = nodeID.longestMatchingPrefix(id)
+    val rowSize = table.size
+    val offset = diff(ownID, rowSize)
+    var row = offset + prefix
+    var col:Int = 0
+    var node:Node[T] = null
+    var possible:Boolean = true
+    
+    /* Check to see if there are a differing number of digits. If this is the
+     * case, "imagine" leading zeroes and match those digits according to the
+     * number of rows available. */
+    if(ownID.numOfDigits() < id.numOfDigits())
+    {
+      row = rowSize - id.numOfDigits()
+      /* In this case, a node with id cannot exist */
+      if(row < 0) possible = false
+      /* In this case, col can come from the 0th digit of id */
+      else col = id.nextDigit(0)
+    }
+    else if(ownID.numOfDigits() > id.numOfDigits())
+    {
+      /* A node with id will not fit into the table. Set it to an existing node */
+      if(rowSize < ownID.numOfDigits()) possible = false
+      /* A node with id fits and thus may exist. Set it level with the number 
+       * of digits in ownID into col 0 */
+      else col = 0
+    }
+    else col = id.nextDigit(n = prefix)
+    
+    /* If this id had a chance to be in the table, then it could have a 
+     * matching node */
+    if(possible) node = table(row)(col)    
+    return node
+  }
   
   def +=(that:Node[T]):Boolean = insert(that)
   
