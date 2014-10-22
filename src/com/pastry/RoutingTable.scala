@@ -77,7 +77,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param node	The node being inserted
    * @returner		Returns whether or not the insert was successful
    */
-  def insertNode(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID, node:T):Boolean =
+  def insert(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID, node:T):Boolean =
   {
     val prefix = nodeID.longestMatchingPrefix(id)
     val rowSize = table.size
@@ -99,7 +99,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
         row = rowSize - 1 
     	col = ownID.nextDigit(n = ownID.numOfDigits()-1)
       }
-      /* In this case, */
+      /* In this case, col can come from the 0th digit of id*/
       else col = id.nextDigit(0)
     }
     else if(ownID.numOfDigits() > id.numOfDigits())
@@ -118,4 +118,98 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
     else inserted = false
     return inserted
   }
+  
+  /**
+   * Inserts the node into the Routing Table. The insert will attempt to insert 
+   * node into the position that matches its id with the parent. It will not 
+   * attempt to insert node into a "lower" matching spot. It will only be 
+   * inserted into the position which matches the prefix id the closest
+   * to nodeID.
+   * 
+   * Note: Insert attempts to match the prefix base b, not base 10
+   * @param node	The node being inserted.
+   * @returner		Returns whether or not the insert was successful
+   */
+  def insert(node:Node[T]):Boolean = insert(id = node.id, node = node.node)
+  
+  /**
+   * Removes the node with the given id from the Routing Table. The remove will
+   * attempt to remove  the node from the position that matches id with the 
+   * parent. It will not attempt to remove the node from a "lower" matching 
+   * spot.
+   * 
+   * Note: Insert attempts to match the prefix base b, not base 10
+   * @param id		The ID of the node being removed.
+   * @param ownID	The ID of the node that "owns" this table
+   * @returner		Returns whether or not the remove was successful
+   */
+  def remove(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID):Boolean =
+  {
+    val prefix = nodeID.longestMatchingPrefix(id)
+    val rowSize = table.size
+    val offset = diff(ownID, rowSize)
+    var row = offset + prefix
+    var col:Int = 0
+    var removed:Boolean = false
+    
+    /* Check to see if there are a differing number of digits. If this is the
+     * case, "imagine" leading zeroes and match those digits according to the
+     * number of rows available. */
+    if(ownID.numOfDigits() < id.numOfDigits())
+    {
+      row = rowSize - id.numOfDigits()
+      /* In this case, a node with id cannot exist */
+      if(row < 0) removed = false
+      /* In this case, col can come from the 0th digit of id */
+      else
+      {
+        col = id.nextDigit(0)
+        removed = true
+      }
+    }
+    else if(ownID.numOfDigits() > id.numOfDigits())
+    {
+      /* A node with id will not fit into the table. Set it to an existing node */
+      if(rowSize < ownID.numOfDigits()) removed = false
+      /* A node with id fits and thus may exist. Set it level with the number 
+       * of digits in ownID into col 0 */
+      else
+      {
+        col = 0
+        removed = true
+      }
+    }
+    else
+    {
+      col = id.nextDigit(n = prefix)
+      removed = true
+    }
+    
+    /* Check if it was possible to remove a node with id (ie, it could exist
+     * in this table) */
+    if(removed)
+    {
+      if(table(row)(col) != null) table(row)(col) = null
+      else removed = false
+    }    
+    return removed
+  }
+  
+  /**
+   * Removes the node with the given id from the Routing Table. The remove will
+   * attempt to remove  the node from the position that matches id with the 
+   * parent. It will not attempt to remove the node from a "lower" matching 
+   * spot.
+   * 
+   * Note: Insert attempts to match the prefix base b, not base 10
+   * @param node	The ID of the node being removed.
+   * @returner		Returns whether or not the remove was successful
+   */
+  def remove(node:Node[T]):Boolean = remove(id = node.id)
+  
+  def +=(that:Node[T]):Boolean = insert(that)
+  
+  def -=(that:Node[T]):Boolean = remove(that)
+  
+  def -=(that:BaseNValue):Boolean = remove(id = that)
 }
