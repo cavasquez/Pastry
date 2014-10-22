@@ -15,7 +15,7 @@ sealed trait Message
  * 					is being delivered. If a node with uniqueID = key is not 
  *      			found, deliver it to a node with the closest uniqueID to key
  */
-case class PastryMessage(message:Content, key:Long) extends Message
+case class PastryMessage(message:Content, key:BigInt) extends Message
 
 /**
  * The contents of a PastryMessage. This will be extended to deal with the 

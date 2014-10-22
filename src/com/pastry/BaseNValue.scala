@@ -3,7 +3,7 @@
  */
 package com.pastry
 
-class BaseNValue(protected val base10Val:Long, val base:Int = 10)
+class BaseNValue(protected val base10Val:BigInt, val base:Int = 10)
 {
 	private lazy val value = makeValue()
   
@@ -14,7 +14,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	 * @param base			the base of the value
 	 * @param numOfDigits	the number of digits in the base_base value
 	 */
-	private[pastry] def makeValue(base10Val:Long = base10Val, base:Int = base, digits:Int = numOfDigits()):Array[Int]=
+	private[pastry] def makeValue(base10Val:BigInt = base10Val, base:Int = base, digits:Int = numOfDigits()):Array[Int]=
 	{
 	  var temp = base10Val
 	  var value = new Array[Int](digits)
@@ -38,7 +38,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	 * @return			the number of digits in the base representation of 
 	 * 					base10Val
 	 */
-	def numOfDigits(base10Val:Long = base10Val, base:Int = base):Int = Math.floor(logBase(base, base10Val)).toInt + 1
+	def numOfDigits(base10Val:BigInt = base10Val, base:Int = base):Int = Math.floor(logBase(base, base10Val)).toInt + 1
 	
 	/**
 	 * Returns the log of x base n
@@ -46,10 +46,10 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	 * @param x	the value
 	 * @return 	the log of x base n
 	 */
-	def logBase(n:Long, x:Long):Double =
+	def logBase(n:BigInt, x:BigInt):Double =
 	{
 	  if(n < 1 || x < 1) throw new IllegalArgumentException("Arguments must be greater than 0")
-	  else Math.log(x)/Math.log(n)
+	  else Math.log(x.doubleValue)/Math.log(n.doubleValue)
 	}
 	
 	/**
@@ -60,7 +60,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	 * @param base	the base of x and y
 	 * @return		length of the longest common prefix between x and y
 	 */
-	private[pastry] def longestMatchingPrefix(x:Long, y:Long = base10Val, base:Int = base):Int = 
+	private[pastry] def longestMatchingPrefix(x:BigInt, y:BigInt = base10Val, base:Int = base):Int = 
 	{
 	  var uncommonPrefixFound = false
 	  val length = numOfDigits(x, base)
@@ -97,7 +97,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	 * @param base	the base of the value
 	 * @return		returns the next digit of value following the nth digit.
 	 */
-	def nextDigit(n:Int, value:Long = base10Val, base:Int = base):Int =
+	def nextDigit(n:Int, value:BigInt = base10Val, base:Int = base):Int =
 	{
 	  if(n < 0) throw new IllegalArgumentException("n must be greater than or equal to 0")
 	  if(base < 1) throw new IllegalArgumentException("base must be greater than 0")
@@ -107,7 +107,7 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	  var i:Int = length - n
 	  if(i < 1) throw new IllegalArgumentException("n is greater than or equal to the number of digits in value")
 	  var power:Long = Math.pow(base, i).toLong
-	  var digit:Long = value % power
+	  var digit = value % power
 	  power = Math.pow(base, i-1).toLong
 	  digit = digit/power
 	  return digit.toInt
@@ -135,15 +135,21 @@ class BaseNValue(protected val base10Val:Long, val base:Int = 10)
 	
 	override def toString():String = toString(value, base, numOfDigits())
 	
-	def -(that:BaseNValue):Long = base10Val - that.base10Val
+	def -(that:BaseNValue):BigInt = base10Val - that.base10Val
 	
-	def +(that:BaseNValue):Long = base10Val + that.base10Val
+	def +(that:BaseNValue):BigInt = base10Val + that.base10Val
 	
-	def *(that:BaseNValue):Long = base10Val * that.base10Val
+	def *(that:BaseNValue):BigInt = base10Val * that.base10Val
 	
-	def /(that:BaseNValue):Long = base10Val - that.base10Val
+	def /(that:BaseNValue):BigInt = base10Val - that.base10Val
 	
 	def <(that:BaseNValue):Boolean = base10Val < that.base10Val
 	
-	def >(that:BaseNValue):Boolean = base10Val > that.base10Val 
+	def <=(that:BaseNValue):Boolean = base10Val <= that.base10Val
+	
+	def >(that:BaseNValue):Boolean = base10Val > that.base10Val
+	
+	def >=(that:BaseNValue):Boolean = base10Val >= that.base10Val
+	
+	def ==(that:BaseNValue):Boolean = base10Val == that.base10Val
 }

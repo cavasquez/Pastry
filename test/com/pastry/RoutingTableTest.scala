@@ -8,7 +8,7 @@ import org.scalatest.junit.AssertionsForJUnit
 import java.lang.ArrayIndexOutOfBoundsException
 
 /**
- * Tests com.bitcoin.ShaHasher
+ * Tests com.pastry.RoutingTable
  */
 class RoutingTableTest extends AssertionsForJUnit 
 {

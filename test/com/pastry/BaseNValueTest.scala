@@ -5,6 +5,9 @@ import org.junit.Assert._
 import org.junit.Test
 import org.junit.Before
 
+/**
+ * Tests com.pastry.BaseNValue
+ */
 class BaseNValueTest extends AssertionsForJUnit
 {
 	var test:BaseNValue = null
