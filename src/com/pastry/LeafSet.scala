@@ -122,7 +122,7 @@ class LeafSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
     var i = 0
     var node:Node[T] = null
     
-    if(parentID - id > 0) arr = smaller else arr = smaller
+    if(parentID - id > 0) arr = smaller else arr = larger
     while(i < arr.length && arr(i) != null)
     {
       if(arr(i).id == id) node = arr(i)
@@ -148,12 +148,12 @@ class LeafSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
     if(parentID - id > 0)
     {
       arr = smaller
-      comp = (x:BaseNValue, y:BaseNValue) => x <= y
+      comp = (x:BaseNValue, y:BaseNValue) => x >= y
     }
     else
     {
       arr = larger
-      comp = (x:BaseNValue, y:BaseNValue) => x >= y
+      comp = (x:BaseNValue, y:BaseNValue) => x <= y
     }
     
     var i = 0

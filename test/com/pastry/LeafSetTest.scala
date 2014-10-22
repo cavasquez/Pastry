@@ -247,4 +247,72 @@ class LeafSetTest extends AssertionsForJUnit
     assertEquals(null, larger(4))
     assertEquals(null, smaller(0))
   }
+  
+  @Test
+  def getTest =
+  {
+    var a = new Node[String](new BaseNValue(50,10), "a")
+    var b = new Node[String](new BaseNValue(45,10), "b")
+    var c = new Node[String](new BaseNValue(40,10), "c")
+    var d = new Node[String](new BaseNValue(30,10), "d")
+    var e = new Node[String](new BaseNValue(10,10), "e")
+    
+    var A = new Node[String](new BaseNValue(105,10), "A")
+    var B = new Node[String](new BaseNValue(115,10), "B")
+    var C = new Node[String](new BaseNValue(130,10), "C")
+    var D = new Node[String](new BaseNValue(140,10), "D")
+    var E = new Node[String](new BaseNValue(160,10), "E")
+    
+    var node = new BaseNValue(0, 10)
+    smaller = Array[Node[String]](a, b, c , d, e)
+    larger = Array[Node[String]](A, B, C, D, E)
+    
+    assertEquals(null, test.get(node, value, smaller, larger))
+    node = new BaseNValue(103, 10)
+    assertEquals(null, test.get(node, value, smaller, larger))
+    
+    assertEquals(A, test.get(A.id , value, smaller, larger))
+    assertEquals(B, test.get(B.id , value, smaller, larger))
+    assertEquals(C, test.get(C.id , value, smaller, larger))
+    assertEquals(D, test.get(D.id , value, smaller, larger))
+    assertEquals(E, test.get(E.id , value, smaller, larger))
+    
+    assertEquals(a, test.get(a.id , value, smaller, larger))
+    assertEquals(b, test.get(b.id , value, smaller, larger))
+    assertEquals(c, test.get(c.id , value, smaller, larger))
+    assertEquals(d, test.get(d.id , value, smaller, larger))
+    assertEquals(e, test.get(e.id , value, smaller, larger))
+  }
+  
+  @Test
+  def findClosestTest = 
+  {
+    var a = new Node[String](new BaseNValue(50,10), "a")
+    var b = new Node[String](new BaseNValue(45,10), "b")
+    var c = new Node[String](new BaseNValue(40,10), "c")
+    var d = new Node[String](new BaseNValue(30,10), "d")
+    var e = new Node[String](new BaseNValue(10,10), "e")
+    
+    var A = new Node[String](new BaseNValue(105,10), "A")
+    var B = new Node[String](new BaseNValue(115,10), "B")
+    var C = new Node[String](new BaseNValue(130,10), "C")
+    var D = new Node[String](new BaseNValue(140,10), "D")
+    var E = new Node[String](new BaseNValue(160,10), "E")
+    
+    smaller = Array[Node[String]](a, b, c , d, e)
+    larger = Array[Node[String]](A, B, C, D, E)
+    
+    var node = new BaseNValue(0, 10)
+    assertEquals(null, test.findCosest(node, value, smaller, larger))    
+    node = new BaseNValue(200, 10)
+    assertEquals(null, test.findCosest(node, value, smaller, larger))
+    node = new BaseNValue(160, 10)
+    assertEquals(E, test.findCosest(node, value, smaller, larger))
+    node = new BaseNValue(100, 10)
+    assertEquals(A, test.findCosest(node, value, smaller, larger))
+    node = new BaseNValue(141, 10)
+    assertEquals(D, test.findCosest(node, value, smaller, larger))
+    node = new BaseNValue(25, 10)
+    assertEquals(d, test.findCosest(node, value, smaller, larger))
+  }
 }
