@@ -314,5 +314,29 @@ class LeafSetTest extends AssertionsForJUnit
     assertEquals(D, test.findCosest(node, value, smaller, larger))
     node = new BaseNValue(25, 10)
     assertEquals(d, test.findCosest(node, value, smaller, larger))
+    
+    smaller = Array[Node[String]](a, b, c , null, null)
+    larger = Array[Node[String]](A, B, C, null, null)
+    
+    node = new BaseNValue(140)
+    assertEquals(null, test.findCosest(node, value, smaller, larger)) 
+    node = new BaseNValue(0)
+    assertEquals(null, test.findCosest(node, value, smaller, larger)) 
+    node = new BaseNValue(41)
+    assertEquals(c, test.findCosest(node, value, smaller, larger)) 
+    node = new BaseNValue(106)
+    assertEquals(A, test.findCosest(node, value, smaller, larger)) 
+    
+    smaller = Array[Node[String]](null, null, null , null, null)
+    larger = Array[Node[String]](null, null, null , null, null)
+    
+    node = new BaseNValue(140)
+    assertEquals(null, test.findCosest(node, value, smaller, larger)) 
+    node = new BaseNValue(0)
+    assertEquals(null, test.findCosest(node, value, smaller, larger)) 
+    node = new BaseNValue(41)
+    assertEquals(null, test.findCosest(node, value, smaller, larger)) 
+    node = new BaseNValue(106)
+    assertEquals(null, test.findCosest(node, value, smaller, larger)) 
   }
 }
