@@ -74,6 +74,41 @@ class NeighborhoodSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
    */
   def length():Int = size
   
+  /**
+   * Searches table for the node that has the longest common prefix with id
+   * @param id			The id being looked for
+   * @param parentID	The parent ID
+   * @param table		The table being searched
+   */
+  def findLongestMatchingPrefix(id:BaseNValue, parentID:BaseNValue =parentID, table:ArrayBuffer[Node[T]] = table):Node[T] =
+  {
+    var largestDigit = Int.MinValue 
+    var i = 0
+    for(i <- 0 until table.size)
+    {
+      if(table(i) != null && table(i).id.numOfDigits(base = id.base) > largestDigit) largestDigit = table(i).id.numOfDigits(base = id.base)
+    }
+    
+    var longestMatchingPrefix = Int.MinValue 
+    var curMatchingPrefix = Int.MinValue
+    var offset = 0
+    var node:Node[T] = null
+    for(i <- 0 until table.size)
+    {
+      /* Compensate for varying digit sizes */
+      if(table(i).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
+      else offset = largestDigit - table(i).id.numOfDigits(base = id.base)
+      
+      if(table(i) != null) curMatchingPrefix = id.longestMatchingPrefix(table(i).id) + offset
+      if(curMatchingPrefix > longestMatchingPrefix)
+      {
+        longestMatchingPrefix = curMatchingPrefix
+        node = table(i)
+      }
+    }
+    return node
+  }
+  
   def +=(that:Node[T]):NeighborhoodSet.this.type = { insert(that); return this }
   
   def -=(that:Node[T]):NeighborhoodSet.this.type = { remove(that); return this } 

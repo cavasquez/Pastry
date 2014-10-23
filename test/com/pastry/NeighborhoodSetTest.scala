@@ -93,4 +93,24 @@ class NeighborhoodSetTest
     assertEquals(c, table(0))
     assertEquals(d, table(1))
   }
+  
+  @Test
+  def findLongestMatchingPrefixTest =
+  {
+    var a = new Node[String](new BaseNValue(1100, 10), "a")
+    var b = new Node[String](new BaseNValue(2507, 10), "b")
+    var c = new Node[String](new BaseNValue(9656, 10), "c")
+    var d = new Node[String](new BaseNValue(55, 10), "d")
+    var e = new Node[String](new BaseNValue(11505, 10), "e")
+    table += a += b += c += d += e
+    
+    var key = new BaseNValue(1567, 10)
+    assertEquals(a, test.findLongestMatchingPrefix(id = key, table = table))
+    key = new BaseNValue(20000, 10)
+    assertEquals(a, test.findLongestMatchingPrefix(id = key, table = table))
+    key = new BaseNValue(10000, 10)
+    assertEquals(e, test.findLongestMatchingPrefix(id = key, table = table))
+    key = new BaseNValue(50, 10)
+    assertEquals(d, test.findLongestMatchingPrefix(id = key, table = table))
+  }
 }

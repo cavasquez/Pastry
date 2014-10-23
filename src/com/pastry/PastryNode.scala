@@ -4,10 +4,9 @@ import akka.actor.Actor
 import scala.collection.mutable.ArrayBuffer
 import akka.actor.ActorRef
 
-abstract class PastryNode(nodeID:Long, b:Int = 4, l:Int = 16) extends Actor
+abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
 {
   /* L:ist of this nodes neighbors */
-  protected val neighbor = ArrayBuffer.empty[ActorRef]
   protected val route:RoutingTable[ActorRef] = null
   protected val leaf:LeafSet[ActorRef] = null
   protected val neighborhood:NeighborhoodSet[ActorRef] = null
@@ -16,6 +15,40 @@ abstract class PastryNode(nodeID:Long, b:Int = 4, l:Int = 16) extends Actor
   def receive =
   {
     case x =>
+  }
+  
+  def findRoute(key:BaseNValue):Node[ActorRef] =
+  {
+    /*
+     * If node.ID is in leaf, forward to leaf such that D - leafnode is minimal
+     * else, use routing table:
+     * 	if there exists a node in route at row = ID.longestCommonPrefix(node.ID)
+     *  and col = node.id's "next prefix" of the common prefix,
+     *  then: forward to that node
+     *  
+     *  else: forward to a node in leaf, routing table, or neighborhood such 
+     *  that the longest common prefix of node.id and the given element is
+     *  greater than or equal to the longest common prefix of ID
+     */
+    var node:Node[ActorRef] = null
+    
+    /* Check to see if key is within range our our leaf */
+    node = leaf.findClosest(id = key)
+    if(node == null)
+    {
+      /* Check to see if a node with a similar key can be found in our route 
+       * table. Similar = shares the same first n digits as key where n is the
+       * longest matching prefix between key and nodeID + 1 */
+      node = route.findRouteableNode(id = key)
+      if(node == null)
+      {
+        /* This is a rare case. Now we will check all three tables to find a
+         * node with key that has a number of matching prefix digits greater 
+         * than or equal to the longest matching prefix between key and nodeID */
+        var prefix = key.longestMatchingPrefix(nodeID)
+      }
+    }
+    return node
   }
   
   /**
@@ -30,20 +63,12 @@ abstract class PastryNode(nodeID:Long, b:Int = 4, l:Int = 16) extends Actor
   /**
    * Causes pastry to route the given message to the node with ID numerically 
    * closest to the key, among all live Pastry nodes.
+   * @param key		The key of the node being routed to
+   * @param message	The message being sent to the node with id key
    */
   private[pastry] def route(key:BaseNValue, message:Message):Unit =
   {
-    /*
-     * If node.ID is in leaf, forward to leaf such that D - leafnode is minimal
-     * else, use routing table:
-     * 	if there exists a node in route at row = ID.longestCommonPrefix(node.ID)
-     *  and col = node.id's "next prefix" of the common prefix,
-     *  then: forward to that node
-     *  
-     *  else: forward to a node in leaf, routing table, or neighborhood such 
-     *  that the longest common prefix of node.id and the given element is
-     *  greater than or equal to the longest common prefix of ID
-     */
+    
   }
   
   /**

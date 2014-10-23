@@ -140,7 +140,7 @@ class LeafSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
    * @param larger		The larger array
    * @return			The node with the given id or null if no node was found
    */
-  def findCosest(id:BaseNValue, parentID:BaseNValue = parentID, smaller:Array[Node[T]] = smaller, larger:Array[Node[T]] = larger):Node[T] = 
+  def findClosest(id:BaseNValue, parentID:BaseNValue = parentID, smaller:Array[Node[T]] = smaller, larger:Array[Node[T]] = larger):Node[T] = 
   {
     var arr:Array[Node[T]] = null
     var comp: (BaseNValue, BaseNValue) => Boolean = null
