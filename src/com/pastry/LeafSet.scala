@@ -177,9 +177,9 @@ class LeafSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
     return node
   }
   
-  def +=(that:Node[T]):Boolean = insert(node = that)
+  def +=(that:Node[T]):LeafSet.this.type = { insert(node = that); return this }
   
-  def -=(that:Node[T]):Boolean = remove(node = that)
+  def -=(that:Node[T]):LeafSet.this.type = { remove(node = that); return this }
   
-  def -=(that:BaseNValue):Boolean = remove(id = that)
+  def -=(that:BaseNValue):LeafSet.this.type = { remove(id = that); return this }
 }

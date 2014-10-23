@@ -32,7 +32,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @return		Returns a 2D array that represents an initial Routing Table
    * 				for the Pastry protocol
    */
-  def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[Node[T]]] =
+  private[pastry] def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[Node[T]]] =
   {
     var table = makeTable(rowSize, colSize)
     var offset = diff(nodeID, rowSize) /* the offset cannot be less than 0 */
@@ -48,7 +48,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param colSize	The number of columns in the 2D array 
    * @return 		Returns a 2D array of type T
    */
-  def makeTable(rowSize:Int, colSize:Int):Array[Array[Node[T]]] =
+  private[pastry] def makeTable(rowSize:Int, colSize:Int):Array[Array[Node[T]]] =
   {
     var rTable = new Array[Array[Node[T]]](rowSize)
     for(i:Int <- 0 until rowSize) { rTable(i) = new Array[Node[T]](colSize) }
@@ -62,7 +62,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param n		the number whose value is being subtracted from
    * @return 		the difference between the number of digits in value and n
    */
-  def diff(value:BaseNValue, n:Int):Int = if(n >= value.numOfDigits()) n - value.numOfDigits() else 0
+  private[pastry] def diff(value:BaseNValue, n:Int):Int = if(n >= value.numOfDigits()) n - value.numOfDigits() else 0
   
   /**
    * Inserts the node with the given id into the Routing Table. The insert will
@@ -240,9 +240,9 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
     return node
   }
   
-  def +=(that:Node[T]):Boolean = insert(that)
+  def +=(that:Node[T]):RoutingTable.this.type = { insert(that); return this }
   
-  def -=(that:Node[T]):Boolean = remove(that)
+  def -=(that:Node[T]):RoutingTable.this.type = { remove(that); return this }
   
-  def -=(that:BaseNValue):Boolean = remove(id = that)
+  def -=(that:BaseNValue):RoutingTable.this.type = { remove(id = that); return this }
 }
