@@ -177,6 +177,58 @@ class LeafSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
     return node
   }
   
+  /**
+   * Searches table for the node that has the longest common prefix with id
+   * @param id			The id being looked for
+   * @param parentID	The parent ID
+   * @param smaller		The table with the elements that have a smaller key 
+   * 					than parentID
+   * @param larger 		The table with the elements that have a larger key 
+   * 					than parentID
+   */
+  def findLongestMatchingPrefix(id:BaseNValue, parentID:BaseNValue = parentID, smaller:Array[Node[T]] = smaller, larger:Array[Node[T]] = larger):Node[T] =
+  {
+    var largestDigit = Int.MinValue 
+    
+    for(i <- 0 until smaller.size)
+    {
+      if(smaller(i) != null && smaller(i).id.numOfDigits(base = id.base) > largestDigit) largestDigit = smaller(i).id.numOfDigits(base = id.base)
+      if(larger(i) != null && larger(i).id.numOfDigits(base = id.base) > largestDigit) largestDigit = larger(i).id.numOfDigits(base = id.base)
+    }
+    
+    var longestMatchingPrefix = Int.MinValue 
+    var curMatchingPrefix = Int.MinValue
+    var offset = 0
+    var node:Node[T] = null
+    for(i <- 0 until smaller.size)
+    {
+      /* First, look in smaller */
+      /* Compensate for varying digit sizes */
+      if(smaller(i).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
+      else offset = largestDigit - smaller(i).id.numOfDigits(base = id.base)
+      
+      if(smaller(i) != null) curMatchingPrefix = id.longestMatchingPrefix(smaller(i).id) + offset
+      if(curMatchingPrefix > longestMatchingPrefix)
+      {
+        longestMatchingPrefix = curMatchingPrefix
+        node = smaller(i)
+      }
+      
+      /* Next, look in larger */
+      /* Compensate for varying digit sizes */
+      if(larger(i).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
+      else offset = largestDigit - larger(i).id.numOfDigits(base = id.base)
+      
+      if(larger(i) != null) curMatchingPrefix = id.longestMatchingPrefix(larger(i).id) + offset
+      if(curMatchingPrefix > longestMatchingPrefix)
+      {
+        longestMatchingPrefix = curMatchingPrefix
+        node = larger(i)
+      }
+    }
+    return node
+  }
+  
   def +=(that:Node[T]):LeafSet.this.type = { insert(node = that); return this }
   
   def -=(that:Node[T]):LeafSet.this.type = { remove(node = that); return this }

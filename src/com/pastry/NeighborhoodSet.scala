@@ -80,10 +80,10 @@ class NeighborhoodSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
    * @param parentID	The parent ID
    * @param table		The table being searched
    */
-  def findLongestMatchingPrefix(id:BaseNValue, parentID:BaseNValue =parentID, table:ArrayBuffer[Node[T]] = table):Node[T] =
+  def findLongestMatchingPrefix(id:BaseNValue, parentID:BaseNValue = parentID, table:ArrayBuffer[Node[T]] = table):Node[T] =
   {
     var largestDigit = Int.MinValue 
-    var i = 0
+    
     for(i <- 0 until table.size)
     {
       if(table(i) != null && table(i).id.numOfDigits(base = id.base) > largestDigit) largestDigit = table(i).id.numOfDigits(base = id.base)

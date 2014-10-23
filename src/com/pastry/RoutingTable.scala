@@ -6,39 +6,39 @@ import scala.reflect.ClassTag
 /**
  * RoutingTable represents the Routing table used by pastry to route to 
  * neighboring nodes. 
- * @param nodeID	The nodeID of the owning Pastry node
+ * @param parentID	The parentID of the owning Pastry node
  * @param b			The b value that will be used by this Pastry network
  * @param n			The maximum number of nodes in this Pastry network
  * @param owner		The ActorRef of the owning node
  */
-class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, owner:T = null)
+class RoutingTable[T:ClassTag](val parentID:BaseNValue, b:Int = 4, n:Int = 10, owner:T = null)
 {
   if(b < 1) throw new IllegalArgumentException("b must be greater than 0")
   private val rowSize = Math.ceil(Math.log(n)/Math.log(Math.pow(2, b))).toInt
-  if(rowSize < nodeID.numOfDigits()) throw new IllegalArgumentException("n is not big enough to contain the number of digits in nodeID")
+  if(rowSize < parentID.numOfDigits()) throw new IllegalArgumentException("n is not big enough to contain the number of digits in parentID")
   private val colSize = Math.pow(2, b).toInt
-  if(colSize > nodeID.base) throw new IllegalArgumentException("cannot have more columns than the size of the base")
-  private val table = makeRoutingTable(rowSize, colSize, nodeID, owner)
+  if(colSize > parentID.base) throw new IllegalArgumentException("cannot have more columns than the size of the base")
+  private val table = makeRoutingTable(rowSize, colSize, parentID, owner)
     
   /**
    * Creates a routing table of the provided row and column size that contains
    * the owner.
    * @param rowSize	The number of rows in the 2D array
    * @param colSize	The number of columns in the 2D array 
-   * @param nodeID	The node ID of the owner
+   * @param parentID	The node ID of the owner
    * @param	owner	The owning node of this table
    * @param diff	The difference between row size and the number of digits in 
-   * 				nodeID.
+   * 				parentID.
    * @return		Returns a 2D array that represents an initial Routing Table
    * 				for the Pastry protocol
    */
-  private[pastry] def makeRoutingTable(rowSize:Int, colSize:Int, nodeID:BaseNValue, owner:T):Array[Array[Node[T]]] =
+  private[pastry] def makeRoutingTable(rowSize:Int, colSize:Int, parentID:BaseNValue, owner:T):Array[Array[Node[T]]] =
   {
     var table = makeTable(rowSize, colSize)
-    var offset = diff(nodeID, rowSize) /* the offset cannot be less than 0 */
-    var difference = rowSize - nodeID.numOfDigits()
-    for(i:Int <- rowSize-1 to offset by -1) { table(i)(nodeID.nextDigit(n = i - difference)) = new Node(nodeID, owner) }
-    for(i:Int <- offset - 1 to 0 by -1) { table(i)(0) = new Node(nodeID, owner) }
+    var offset = diff(parentID, rowSize) /* the offset cannot be less than 0 */
+    var difference = rowSize - parentID.numOfDigits()
+    for(i:Int <- rowSize-1 to offset by -1) { table(i)(parentID.nextDigit(n = i - difference)) = new Node(parentID, owner) }
+    for(i:Int <- offset - 1 to 0 by -1) { table(i)(0) = new Node(parentID, owner) }
     return table
   }
   
@@ -69,7 +69,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * attempt to insert node into the position that matches id with the parent.
    * It will not attempt to insert node into a "lower" matching spot. It will
    * only be inserted into the position who matches the prefix id the closest
-   * to nodeID.
+   * to parentID.
    * 
    * Note: Insert attempts to match the prefix base b, not base 10
    * @param id		The ID of the inserted node.
@@ -77,9 +77,9 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param node	The node being inserted
    * @returner		Returns whether or not the insert was successful
    */
-  def insert(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID, node:T):Boolean =
+  def insert(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = parentID, node:T):Boolean =
   {
-    val prefix = nodeID.longestMatchingPrefix(id)
+    val prefix = parentID.longestMatchingPrefix(id)
     val rowSize = table.size
     val offset = diff(ownID, rowSize)
     var row = offset + prefix
@@ -93,7 +93,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
     {
       row = rowSize - id.numOfDigits()
       /* In this case, node cannot be inserted into the table. Give the last 
-       * position of nodeID */
+       * position of parentID */
       if(row < 0)
       {
         row = rowSize - 1 
@@ -124,7 +124,7 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * node into the position that matches its id with the parent. It will not 
    * attempt to insert node into a "lower" matching spot. It will only be 
    * inserted into the position which matches the prefix id the closest
-   * to nodeID.
+   * to parentID.
    * 
    * Note: Insert attempts to match the prefix base b, not base 10
    * @param node	The node being inserted.
@@ -143,9 +143,9 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param ownID	The ID of the node that "owns" this table
    * @returner		Returns whether or not the remove was successful
    */
-  def remove(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = nodeID):Boolean =
+  def remove(table:Array[Array[Node[T]]] = table, id:BaseNValue, ownID:BaseNValue = parentID):Boolean =
   {
-    val prefix = nodeID.longestMatchingPrefix(id)
+    val prefix = parentID.longestMatchingPrefix(id)
     val rowSize = table.size
     val offset = diff(ownID, rowSize)
     var row = offset + prefix
@@ -203,9 +203,9 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
    * @param ownID	The ID of the node that "owns" this table
    * @returner		Returns a node that is close to id
    */
-  def findRouteableNode(id:BaseNValue, table:Array[Array[Node[T]]] = table, ownID:BaseNValue = nodeID):Node[T] =
+  def findRouteableNode(id:BaseNValue, table:Array[Array[Node[T]]] = table, ownID:BaseNValue = parentID):Node[T] =
   {
-    val prefix = nodeID.longestMatchingPrefix(id)
+    val prefix = parentID.longestMatchingPrefix(id)
     val rowSize = table.size
     val offset = diff(ownID, rowSize)
     var row = offset + prefix
@@ -237,6 +237,46 @@ class RoutingTable[T:ClassTag](val nodeID:BaseNValue, b:Int = 4, n:Int = 10, own
     /* If this id had a chance to be in the table, then it could have a 
      * matching node */
     if(possible) node = table(row)(col)    
+    return node
+  }
+  
+  /**
+   * Searches table for the node that has the longest common prefix with id
+   * @param id			The id being looked for
+   * @param parentID	The parent ID
+   * @param table		The table being searched
+   */
+  def findLongestMatchingPrefix(id:BaseNValue, parentID:BaseNValue = parentID, table:Array[Array[Node[T]]] = table):Node[T] =
+  {
+    var largestDigit = Int.MinValue 
+    for(i <- 0 until table.size)
+    {
+      for(j <- 0 until table(i).size)
+      {
+        if(table(i) != null && table(i)(j).id.numOfDigits(base = id.base) > largestDigit) largestDigit = table(i)(j).id.numOfDigits(base = id.base)
+      }
+    }
+    
+    var longestMatchingPrefix = Int.MinValue 
+    var curMatchingPrefix = Int.MinValue
+    var offset = 0
+    var node:Node[T] = null
+    for(i <- 0 until table.size)
+    {
+      for(j <- 0 until table(i).size)
+      {
+        /* Compensate for varying digit sizes */
+        if(table(i)(j).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
+        else offset = largestDigit - table(i)(j).id.numOfDigits(base = id.base)
+        
+        if(table(i) != null) curMatchingPrefix = id.longestMatchingPrefix(table(i)(j).id) + offset
+        if(curMatchingPrefix > longestMatchingPrefix)
+        {
+          longestMatchingPrefix = curMatchingPrefix
+          node = table(i)(j)
+        }
+      }
+    }
     return node
   }
   
