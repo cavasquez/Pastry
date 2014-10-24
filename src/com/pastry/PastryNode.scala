@@ -45,7 +45,25 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
         /* This is a rare case. Now we will check all three tables to find a
          * node with key that has a number of matching prefix digits greater 
          * than or equal to the longest matching prefix between key and nodeID */
-        var prefix = key.longestMatchingPrefix(nodeID)
+        var firstTime = true
+        var temp = leaf.findLongestMatchingPrefix(id = key)
+        node = route.findLongestMatchingPrefix(id = key)
+        
+        while(firstTime)
+        {
+          if(node.id.numOfDigits(base = key.base) == temp.id.numOfDigits(base = key.base))
+          {
+            if(node.id.longestMatchingPrefix(key) < temp.id.longestMatchingPrefix(key)) node = temp
+          }
+          else
+          {
+            /* Choose the node with the smallest difference in digits */
+            if(node.id.numOfDigits(base = key.base) - key.numOfDigits(base = key.base).abs > (node.id.numOfDigits(base = key.base) - key.numOfDigits(base = key.base).abs )) node = temp
+          }
+          
+          temp = neighborhood.findLongestMatchingPrefix(id = key)
+          firstTime = false
+        }
       }
     }
     return node
