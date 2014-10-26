@@ -3,4 +3,4 @@ package com.pastry
 /**
  * Credentials will include the Pastry credentials as well as its ID.
  */
-class Credentials(id:BigInt)
+class Credentials(val id:BaseNValue)

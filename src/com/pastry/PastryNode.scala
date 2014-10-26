@@ -11,18 +11,16 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
   protected val leaf:LeafSet[ActorRef] = null
   protected val neighborhood:NeighborhoodSet[ActorRef] = null
   protected val ID:BaseNValue = new BaseNValue(nodeID, b)
-  
-  /**
-   * Package will be used to pass the neighbor and message between functions
-   */
-  protected case class Package(var key:BaseNValue, var message:Message)
+  protected var firstNeighbor:Node[ActorRef];
   
   def receive =
   {
-    case Route(key, message) => route(Package(key, message))
-    case Join(node:Node[ActorRef], hop) => join(node, hop)
-    case Init(cred, app) => pastryInit(cred, app)
-    case x =>
+    case Route(key, message) => route(key, PastryMessage(key, message))
+    case Join(target, node:Node[ActorRef], hop) => join(target, node, hop)
+    case PastryInit(cred, app) => pastryInit(cred, app)
+    case StateTables(hop, nodeID, leaf, route, neighborhood) => stateTables(hop, nodeID, leaf, route, neighborhood)
+    case PastryMessage(key, mssg) => deliver(key, mssg)
+    case x => /* do nothing */
   }
   
   /**
@@ -84,34 +82,58 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    */
   private[pastry] def pastryInit(cred:Credentials, app:Application):BaseNValue =
   {
-    return null
+    /* Assume that NeighborhoodSet already has some values to begin with. */
+    return cred.id 
   }
   
   /**
    * Causes pastry to route the given message to the node with ID numerically 
    * closest to the key, among all live Pastry nodes.
-   * @param key		The key of the node being routed to
-   * @param message	The message being sent to the node with id key
+   * @mssg	The key and message
    */
-  private[pastry] def route(pack:Package):Unit =
+  private[pastry] def route(key:BaseNValue, mssg:PastryMessage):Unit =
   {
     /* Check to see if package has arrived at destination. If not, forward it
      * to this node and then send it off to the next node. If it has, deliver
      * the package */
-    if(pack.key != ID)
+    if(key != ID)
     {
-      var nextHop = findRoute(pack.key)
-      var newPack = new Package(nextHop.id, pack.message)
-      forward(pack.key, newPack)
-      if(newPack != null) nextHop.node ! Route(newPack.key, newPack.message)
+      var nextHop = findRoute(key)
+      var newMssg = forward(mssg.key, nextHop.id, mssg.message)
+      if(newMssg.key != null) nextHop.node ! Route(newMssg.key, newMssg.message)
     }
-    else deliver(pack)
+    else self ! mssg
   }
   
   /**
    * Send state tables to node and possibly route to target
    */
-  private[pastry] def join(node:Node[ActorRef], hop:Int):Unit = 
+  private[pastry] def join(target:BaseNValue, node:Node[ActorRef], hop:Int):Unit = 
+  {
+    /* Check if the message has arrived at destination. If not, route it. */
+    if(ID != target)
+    {
+      var nextHop = findRoute(target)
+      nextHop.node ! Join(target, node, hop + 1)
+    }
+    
+    /* Send requester this nodes tables */
+    node.node ! stateTables(hop + 1, ID, leaf, route, neighborhood)
+    /* Now add the new node to this nodes tables */
+    leaf += node
+    route += node
+    neighborhood  += node
+  }
+  
+  /**
+   * Receives state tables from other nodes and modifies own state tables.
+   * @hop			The number of neighbors between the sender and this node
+   * @nodeID		The id of the sender
+   * @leaf			The leaf set of the sender
+   * @route			The routing table of the sender
+   * @neighborhood	The neighborhood set of the sender
+   */
+  private def stateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]):Unit = 
   {
     
   }
@@ -120,15 +142,15 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    * Called by Pastry when a message is received and the local node's ID is 
    * numerically closest to key, among all live nodes.
    */
-  protected def deliver(pack:Package):Unit
+  protected def deliver(key:BaseNValue, mssg:Content):Unit
   
   /**
    * Called by Pastry just before a message is forwarded to the node with 
    * ID = nextID. The application may change the contents of the message or the 
-   * value of nextID (via pack). Setting the nextID to NULL terminates the 
-   * message at the local node.
+   * value of nextID (via pack) by returning the modified PastryMessage. Setting 
+   * the nextID to NULL terminates the message at the local node.
    */
-  protected def forward(key:BaseNValue, pack:Package):Unit
+  protected def forward(key:BaseNValue, nextID:BaseNValue, message:Content):PastryMessage
   
   /**
    * Called by Pastry whenever there is a change in the local nodes' leaf set. 
