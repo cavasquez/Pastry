@@ -12,24 +12,33 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
   protected val neighborhood:NeighborhoodSet[ActorRef] = null
   protected val ID:BaseNValue = new BaseNValue(nodeID, b)
   
+  /**
+   * Package will be used to pass the neighbor and message between functions
+   */
+  protected case class Package(var key:BaseNValue, var message:Message)
+  
   def receive =
   {
+    case Route(key, message) => route(Package(key, message))
+    case Join(node:Node[ActorRef], hop) => join(node, hop)
+    case Init(cred, app) => pastryInit(cred, app)
     case x =>
   }
   
+  /**
+    * If node.ID is in leaf, forward to leaf such that D - leafnode is minimal
+    * else, use routing table:
+    * 	if there exists a node in route at row = ID.longestCommonPrefix(node.ID)
+    *  and col = node.id's "next prefix" of the common prefix,
+    *  then: forward to that node
+    *  
+    *  else: forward to a node in leaf, routing table, or neighborhood such 
+    *  that the longest common prefix of node.id and the given element is
+    *  greater than or equal to the longest common prefix of ID
+    */
   def findRoute(key:BaseNValue):Node[ActorRef] =
   {
-    /*
-     * If node.ID is in leaf, forward to leaf such that D - leafnode is minimal
-     * else, use routing table:
-     * 	if there exists a node in route at row = ID.longestCommonPrefix(node.ID)
-     *  and col = node.id's "next prefix" of the common prefix,
-     *  then: forward to that node
-     *  
-     *  else: forward to a node in leaf, routing table, or neighborhood such 
-     *  that the longest common prefix of node.id and the given element is
-     *  greater than or equal to the longest common prefix of ID
-     */
+    
     var node:Node[ActorRef] = null
     
     /* Check to see if key is within range our our leaf */
@@ -61,7 +70,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
             if(node.id.numOfDigits(base = key.base) - key.numOfDigits(base = key.base).abs > (node.id.numOfDigits(base = key.base) - key.numOfDigits(base = key.base).abs )) node = temp
           }
           
-          temp = neighborhood.findLongestMatchingPrefix(id = key)
+          temp = neighborhood.findLongestMatchingPrefix(id = key) 
           firstTime = false
         }
       }
@@ -73,7 +82,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    * Causes the local node to join an existing Pastry network (or start a new 
    * one), initialize all relevant state, and return the local node's nodeID.
    */
-  private[pastry] def pastryInit():BaseNValue =
+  private[pastry] def pastryInit(cred:Credentials, app:Application):BaseNValue =
   {
     return null
   }
@@ -84,15 +93,25 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    * @param key		The key of the node being routed to
    * @param message	The message being sent to the node with id key
    */
-  private[pastry] def route(key:BaseNValue, message:Message):Unit =
+  private[pastry] def route(pack:Package):Unit =
   {
-    
+    /* Check to see if package has arrived at destination. If not, forward it
+     * to this node and then send it off to the next node. If it has, deliver
+     * the package */
+    if(pack.key != ID)
+    {
+      var nextHop = findRoute(pack.key)
+      var newPack = new Package(nextHop.id, pack.message)
+      forward(pack.key, newPack)
+      if(newPack != null) nextHop.node ! Route(newPack.key, newPack.message)
+    }
+    else deliver(pack)
   }
   
   /**
    * Send state tables to node and possibly route to target
    */
-  private[pastry] def join(node:Node[ActorRef]):Unit = 
+  private[pastry] def join(node:Node[ActorRef], hop:Int):Unit = 
   {
     
   }
@@ -101,15 +120,15 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    * Called by Pastry when a message is received and the local node's ID is 
    * numerically closest to key, among all live nodes.
    */
-  protected def deliver(key:BaseNValue, message:Message):Unit
+  protected def deliver(pack:Package):Unit
   
   /**
    * Called by Pastry just before a message is forwarded to the node with 
    * ID = nextID. The application may change the contents of the message or the 
-   * value of nextID. Setting the nextID to NULL terminates the message at the
-   * local node.
+   * value of nextID (via pack). Setting the nextID to NULL terminates the 
+   * message at the local node.
    */
-  protected def forward(key:BaseNValue, nextID:BaseNValue, message:Message):Unit
+  protected def forward(key:BaseNValue, pack:Package):Unit
   
   /**
    * Called by Pastry whenever there is a change in the local nodes' leaf set. 

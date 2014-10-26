@@ -152,4 +152,6 @@ class BaseNValue(protected val base10Val:BigInt, val base:Int = 10)
 	def >=(that:BaseNValue):Boolean = base10Val >= that.base10Val
 	
 	def ==(that:BaseNValue):Boolean = base10Val == that.base10Val
+	
+	def !=(that:BaseNValue):Boolean = base10Val != that.base10Val
 }
