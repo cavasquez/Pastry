@@ -18,7 +18,7 @@ class RoutingTable[T:ClassTag](val parentID:BaseNValue, b:Int = 4, n:Int = 10, o
   if(rowSize < parentID.numOfDigits()) throw new IllegalArgumentException("n is not big enough to contain the number of digits in parentID")
   private val colSize = Math.pow(2, b).toInt
   if(colSize > parentID.base) throw new IllegalArgumentException("cannot have more columns than the size of the base")
-  private val table = makeRoutingTable(rowSize, colSize, parentID, owner)
+  private[pastry] val table = makeRoutingTable(rowSize, colSize, parentID, owner)
     
   /**
    * Creates a routing table of the provided row and column size that contains

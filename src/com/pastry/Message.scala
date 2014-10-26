@@ -58,6 +58,7 @@ case class PastryInit(credentials:Credentials, application:Application) extends 
  * in it.
  */
 case class Join(target:BaseNValue, node:Node[Any], hop:Int) extends Content
+
 /**
  * A special message sent to the Requested of a join message. It contains how
  * far the receiver is from the sender and contains the receivers state tables.
@@ -68,3 +69,14 @@ case class Join(target:BaseNValue, node:Node[Any], hop:Int) extends Content
  * @param neighborhood	The Neighborhood Set of the receiver
  */
 case class StateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]) extends Content
+
+/**
+ * A special message sent to the Requested of a join message. It contains how
+ * far the receiver is from the sender and contains the receivers state tables.
+ * @param hop			The distance from the receiver to sender
+ * @param nodeID		The ID of the sender
+ * @param leaf			The leaf set of the receiver
+ * @param route			The Routing Table of the receiver
+ * @param neighborhood	The Neighborhood Set of the receiver
+ */
+case class UpdateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]) extends Content

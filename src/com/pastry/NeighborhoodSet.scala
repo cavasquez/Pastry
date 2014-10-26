@@ -14,7 +14,7 @@ import scala.collection.mutable.ArrayBuffer
  */
 class NeighborhoodSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
 {
-  private lazy val size = 2 *Math.pow(2, b).toInt 
+  lazy val size = 2 *Math.pow(2, b).toInt 
   private lazy val table = new ArrayBuffer[Node[T]](size)
   
   /**
@@ -67,7 +67,7 @@ class NeighborhoodSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
    * @param table	The table holding the near-by nodes
    * @return 		The node located at index i in table
    */
-  def get(i:Int, table:ArrayBuffer[Node[T]]):Node[T] = table(i)
+  def get(i:Int, table:ArrayBuffer[Node[T]] = table):Node[T] = table(i)
   
   /**
    * Returns the length of the table

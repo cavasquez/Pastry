@@ -11,7 +11,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
   protected val leaf:LeafSet[ActorRef] = null
   protected val neighborhood:NeighborhoodSet[ActorRef] = null
   protected val ID:BaseNValue = new BaseNValue(nodeID, b)
-  protected var firstNeighbor:Node[ActorRef];
+  protected val firstTarget:BaseNValue;
   
   def receive =
   {
@@ -19,6 +19,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
     case Join(target, node:Node[ActorRef], hop) => join(target, node, hop)
     case PastryInit(cred, app) => pastryInit(cred, app)
     case StateTables(hop, nodeID, leaf, route, neighborhood) => stateTables(hop, nodeID, leaf, route, neighborhood)
+    case UpdateTables(hop, nodeID, leaf, route, neighborhood) => updateTables(hop, nodeID, leaf, route, neighborhood)
     case PastryMessage(key, mssg) => deliver(key, mssg)
     case x => /* do nothing */
   }
@@ -83,6 +84,8 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
   private[pastry] def pastryInit(cred:Credentials, app:Application):BaseNValue =
   {
     /* Assume that NeighborhoodSet already has some values to begin with. */
+    var firstNeighbor = neighborhood.findLongestMatchingPrefix(this.ID)
+    firstNeighbor.node ! Join(firstTarget, Node(this.ID, self), 0)
     return cred.id 
   }
   
@@ -119,10 +122,9 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
     
     /* Send requester this nodes tables */
     node.node ! stateTables(hop + 1, ID, leaf, route, neighborhood)
-    /* Now add the new node to this nodes tables */
+    /* Now add the new node to this nodes' tables */
     leaf += node
     route += node
-    neighborhood  += node
   }
   
   /**
@@ -135,7 +137,44 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    */
   private def stateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]):Unit = 
   {
+    /* Update this nodes tables. Note that I process this message instead of
+     * sending it to myself via UpdateTables because I would end up sending
+     * my neighbor the data before the update */
+    this.updateTables(hop, nodeID, leaf, route, neighborhood)
     
+    /* Send this nodes tables to neighbors so they can update themselves */
+    sender ! UpdateTables(hop, this.ID, this.leaf, this.route, this.neighborhood)
+  }
+  
+  private def updateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]):Unit =
+  {
+    /* If node is firstTarget, use its leafSet */
+    if(nodeID == this.firstTarget)
+    {
+      for(i:Int <- 0 until leaf.smaller.size)
+      {
+        if(leaf.smaller(i) != null) this.leaf += leaf.smaller(i)
+      }
+      for(i:Int <- 0 until leaf.larger.size)
+      {
+        if(leaf.larger(i) != null) this.leaf += leaf.larger(i)
+      }
+    }
+    
+    if(hop == 1)
+    {
+      /* If node was 1 hop away (closest node) use its neighborhood set */
+      for(i:Int <- 0 until neighborhood.size)
+      {
+        if(neighborhood.get(i) != null) this.neighborhood += neighborhood.get(i)
+      }
+    }
+    
+    /* update routing table */
+    for(i:Int <- 0 until route.table(hop).size) 
+    {
+      if(route.table(hop)(i) != null) this.route += route.table(hop)(i)
+    }
   }
   
   /**

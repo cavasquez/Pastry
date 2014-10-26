@@ -12,8 +12,8 @@ import scala.reflect.ClassTag
 class LeafSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
 {
   private lazy val size:Int = Math.pow(2, b).toInt
-  private val smaller = new Array[Node[T]](size)
-  private val larger = new Array[Node[T]](size)
+  private[pastry] val smaller = new Array[Node[T]](size)
+  private[pastry] val larger = new Array[Node[T]](size)
   
   /**
    * Attempts to insert node into smaller or larger depending on if node is 
