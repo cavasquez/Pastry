@@ -3,15 +3,28 @@ package com.pastry
 import akka.actor.Actor
 import scala.collection.mutable.ArrayBuffer
 import akka.actor.ActorRef
+import scala.collection.immutable.IndexedSeq
 
-abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
+/**
+ * @param nodeID 		The id of this node
+ * @param n				The number of nodes in the pastry network
+ * @param base			The base of the numeric system used by this pastry
+ * 						network
+ * @param b				A parameter that affects the number of rows and columns
+ * 						in the routing table
+ * @param l				A parameter that affects the size of the leaf set and 
+ * 						neighborhood set
+ * @param firstNode		The first node that this node must contact
+ * @param neighbor		The list of neighbors this node can contact
+ */
+abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:Int = 16, firstNode:BigInt, neighbor:List[Node[ActorRef]]) extends Actor
 {
   /* L:ist of this nodes neighbors */
-  protected val route:RoutingTable[ActorRef] = null
-  protected val leaf:LeafSet[ActorRef] = null
-  protected val neighborhood:NeighborhoodSet[ActorRef] = null
-  protected val ID:BaseNValue = new BaseNValue(nodeID, b)
-  protected val firstTarget:BaseNValue;
+  protected val ID:BaseNValue = new BaseNValue(nodeID, base)
+  protected val route:RoutingTable[ActorRef] = new RoutingTable(ID, b, n, self)
+  protected val leaf:LeafSet[ActorRef] = new LeafSet(ID, b)
+  protected val neighborhood:NeighborhoodSet[ActorRef] = new NeighborhoodSet(ID, b)
+  protected val firstTarget = new BaseNValue(firstNode, base)
   
   def receive =
   {
@@ -21,7 +34,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
     case StateTables(hop, nodeID, leaf, route, neighborhood) => stateTables(hop, nodeID, leaf, route, neighborhood)
     case UpdateTables(hop, nodeID, leaf, route, neighborhood) => updateTables(hop, nodeID, leaf, route, neighborhood)
     case PastryMessage(key, mssg) => deliver(key, mssg)
-    case x => /* do nothing */
+    case y => /* do nothing */
   }
   
   /**
@@ -59,7 +72,10 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
         
         while(firstTime)
         {
-          if(node.id.numOfDigits(base = key.base) == temp.id.numOfDigits(base = key.base))
+          if(node == null && temp == null) { /* do nothing */ }
+          else if(node == null) node = temp
+          else if (temp == null) { /* do nothing */ }
+          else if(node.id.numOfDigits(base = key.base) == temp.id.numOfDigits(base = key.base))
           {
             if(node.id.longestMatchingPrefix(key) < temp.id.longestMatchingPrefix(key)) node = temp
           }
@@ -85,7 +101,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
   {
     /* Assume that NeighborhoodSet already has some values to begin with. */
     var firstNeighbor = neighborhood.findLongestMatchingPrefix(this.ID)
-    firstNeighbor.node ! Join(firstTarget, Node(this.ID, self), 0)
+    if(firstNeighbor != null) firstNeighbor.node ! Join(firstTarget, Node(this.ID, self), 0)
     return cred.id 
   }
   
@@ -103,7 +119,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
     {
       var nextHop = findRoute(key)
       var newMssg = forward(mssg.key, nextHop.id, mssg.message)
-      if(newMssg.key != null) nextHop.node ! Route(newMssg.key, newMssg.message)
+      if(newMssg.key != null && nextHop != null) nextHop.node ! Route(newMssg.key, newMssg.message)
     }
     else self ! mssg
   }
@@ -117,7 +133,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
     if(ID != target)
     {
       var nextHop = findRoute(target)
-      nextHop.node ! Join(target, node, hop + 1)
+      if(nextHop != null) nextHop.node ! Join(target, node, hop + 1)
     }
     
     /* Send requester this nodes tables */
@@ -181,7 +197,7 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    * Called by Pastry when a message is received and the local node's ID is 
    * numerically closest to key, among all live nodes.
    */
-  protected def deliver(key:BaseNValue, mssg:Content):Unit
+  protected def deliver(key:BaseNValue, mssg:Message):Unit
   
   /**
    * Called by Pastry just before a message is forwarded to the node with 
@@ -189,12 +205,12 @@ abstract class PastryNode(nodeID:BigInt, b:Int = 4, l:Int = 16) extends Actor
    * value of nextID (via pack) by returning the modified PastryMessage. Setting 
    * the nextID to NULL terminates the message at the local node.
    */
-  protected def forward(key:BaseNValue, nextID:BaseNValue, message:Content):PastryMessage
+  protected def forward(key:BaseNValue, nextID:BaseNValue, mssg:Message):PastryMessage
   
   /**
    * Called by Pastry whenever there is a change in the local nodes' leaf set. 
    * This provides the application with an opportunity to adjust 
    * application-specific invariants based on the leaf set.
    */
-  protected def newLeafs(leaf:LeafSet[ActorRef])
+  protected def newLeafs(leaf:LeafSet[ActorRef]):Unit
 }

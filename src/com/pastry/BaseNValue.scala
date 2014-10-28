@@ -133,6 +133,8 @@ class BaseNValue(protected val base10Val:BigInt, val base:Int = 10)
 	  return temp.toString
 	}
 	
+	def toBase10():BigInt = base10Val
+	
 	override def toString():String = toString(value, base, numOfDigits())
 	
 	def -(that:BaseNValue):BigInt = base10Val - that.base10Val

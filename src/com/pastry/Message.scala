@@ -6,7 +6,7 @@ import akka.actor.ActorRef
 /**
  * The trait by which each actor will communicate
  */
-sealed trait Message
+trait Message
 
 /**
  * A Message that will contain contents and the nodeID of the intended 
@@ -16,13 +16,7 @@ sealed trait Message
  * 					is being delivered. If a node with uniqueID = key is not 
  *      			found, deliver it to a node with the closest uniqueID to key
  */
-case class PastryMessage(key:BaseNValue, message:Content) extends Message
-
-/**
- * The contents of a PastryMessage. This will be extended to deal with the 
- * actual message
- */
-trait Content extends Message
+case class PastryMessage(key:BaseNValue, message:Message) extends Message
 
 /**
  * A Route message containing the key of a recipient and a message for the 
@@ -30,20 +24,20 @@ trait Content extends Message
  * @param key		the key of the recipient
  * @param message	a message for the recipient
  */
-case class Route(key:BaseNValue, message:Content) extends Content
+case class Route(key:BaseNValue, message:Message) extends Message
 
 /**
  * Contains a node and it's id.
  * @param id	the id of the node
  * @param node	the node
  */
-case class Node[+T:ClassTag](id:BaseNValue, node:T) extends Content
+case class Node[+T:ClassTag](id:BaseNValue, node:T) extends Message
 
 /**
  * Taken by com.pastry.PastryNode.pastryInit to obtain application-specific 
  * credentials.
  */
-trait Application extends Content
+trait Application extends Message
 
 /**
  * The initializing message sent to a PastryNode
@@ -51,13 +45,13 @@ trait Application extends Content
  * @param application	The application that Pastry will use
  * @param firstNeighbor	The first neighbor
  */
-case class PastryInit(credentials:Credentials, application:Application) extends Content
+case class PastryInit(credentials:Credentials, application:Application) extends Message
 
 /**
  * A special message sent by the requester to join a network with the receiver
  * in it.
  */
-case class Join(target:BaseNValue, node:Node[Any], hop:Int) extends Content
+case class Join(target:BaseNValue, node:Node[Any], hop:Int) extends Message
 
 /**
  * A special message sent to the Requested of a join message. It contains how
@@ -68,7 +62,7 @@ case class Join(target:BaseNValue, node:Node[Any], hop:Int) extends Content
  * @param route			The Routing Table of the receiver
  * @param neighborhood	The Neighborhood Set of the receiver
  */
-case class StateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]) extends Content
+case class StateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]) extends Message
 
 /**
  * A special message sent to the Requested of a join message. It contains how
@@ -79,4 +73,4 @@ case class StateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route
  * @param route			The Routing Table of the receiver
  * @param neighborhood	The Neighborhood Set of the receiver
  */
-case class UpdateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]) extends Content
+case class UpdateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]) extends Message
