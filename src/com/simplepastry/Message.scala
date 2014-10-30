@@ -37,3 +37,8 @@ case class AddNode(id:BigInt, node:ActorRef) extends Message
  * Indicates that id has received the simple message
  */
 case class ReceivedSimple(id:BigInt, hop:Int) extends Message
+
+/**
+ * Indicates that Master should print the total messages sent/received
+ */
+case class PrintTotalMessages() extends Message

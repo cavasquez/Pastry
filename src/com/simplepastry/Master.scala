@@ -13,7 +13,7 @@ import scala.actors.threadpool.AtomicInteger
  */
 class Master(n:Int, base:Int) extends Actor
 {
-  case class Data(node:ActorRef, id:BaseNValue, var messagesSent:AtomicInteger, var messagesReceived:AtomicInteger, var totalHops:AtomicInteger, var messagesForwarded:AtomicInteger)
+  case class Data(node:ActorRef, id:BaseNValue, messagesSent:AtomicInteger, messagesReceived:AtomicInteger, totalHops:AtomicInteger, messagesForwarded:AtomicInteger)
   
   /* Maps a nodes id to the relevant data */
   val map:TrieMap[BigInt, Data] = new TrieMap[BigInt, Data]
@@ -26,6 +26,7 @@ class Master(n:Int, base:Int) extends Actor
     case Forward(id) => map.get(id).get.messagesForwarded.incrementAndGet()
     case StartSend(from, to) => startSend(from, to)
     case AddNode(id, node) => map += ((id, Data(node, new BaseNValue(id, base), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0))))
+    case PrintTotalMessages() => printTotalMessages
     case x =>
   }
   
@@ -34,5 +35,11 @@ class Master(n:Int, base:Int) extends Actor
     val data:Data = map.get(from).get
     if (data != null) data.node ! Route(new BaseNValue(to, base), Simple(0))
     data.messagesSent.incrementAndGet()
+  }
+  
+  def printTotalMessages() =
+  {
+    var totalMessages = 0
+    map.foreach(totalMessages += _._2.totalHops.get())
   }
 }

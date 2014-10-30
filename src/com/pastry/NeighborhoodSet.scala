@@ -1,6 +1,5 @@
 package com.pastry
 
-import scala.reflect.ClassTag
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -12,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
  * 
  * NeighborhoodSet will have 2 x 2^b nodes
  */
-class NeighborhoodSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
+class NeighborhoodSet[T](parentID:BaseNValue, b:Int = 4)
 {
   lazy val size = 2 *Math.pow(2, b).toInt 
   private lazy val table = new ArrayBuffer[Node[T]](size)

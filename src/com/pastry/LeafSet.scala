@@ -1,7 +1,5 @@
 package com.pastry
 
-import scala.reflect.ClassTag
-
 /**
  * The leaf set is the set of nodes with the n/2 numerically closest larger 
  * node ID's, and the n/2 nodes with numerically closest smaller node IDs, 
@@ -9,7 +7,7 @@ import scala.reflect.ClassTag
  * 
  * LeafSet will have 2 x 2^b nodes
  */
-class LeafSet[T:ClassTag](parentID:BaseNValue, b:Int = 4)
+class LeafSet[T](parentID:BaseNValue, b:Int = 4)
 {
   private lazy val size:Int = Math.pow(2, b).toInt
   private[pastry] val smaller = new Array[Node[T]](size)
