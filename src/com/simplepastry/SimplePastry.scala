@@ -8,11 +8,19 @@ import akka.actor.ActorRef
 import com.pastry.Node
 import com.pastry.LeafSet
 import com.pastry.Route
+import com.pastry.Join
+import com.pastry.StateTables
+import akka.event.Logging
 
 class SimplePastry(nodeID:BigInt, n:Int, base:Int, b:Int, l:Int, firstNode:BigInt, neighbor:List[Node[ActorRef]], master:ActorRef) extends PastryNode(nodeID, n, base, b, l, firstNode, neighbor) 
 {  
+  if(neighbor.isEmpty) master ! Initialized(ID)
   type PMessage = com.pastry.Message
   
+  var joinHops = 0
+  var totalJoinHops = 0
+  var sentInitial = false
+
   /**
    * Called by Pastry when a message is received and the local node's ID is 
    * numerically closest to key, among all live nodes.
@@ -21,8 +29,9 @@ class SimplePastry(nodeID:BigInt, n:Int, base:Int, b:Int, l:Int, firstNode:BigIn
   {
     mssg match
     {
-      case Simple(hop) => master ! ReceivedSimple(nodeID, hop)
-      case x => /* do nothing */
+      case Simple(hop) =>
+        master ! ReceivedSimple(nodeID, hop)
+      case x => println(ID + " received " + x)/* do nothing */
     }
   }
   
@@ -42,6 +51,15 @@ class SimplePastry(nodeID:BigInt, n:Int, base:Int, b:Int, l:Int, firstNode:BigIn
       case Simple(hop) => 
         message = Simple(hop+1)
         master ! Forward(nodeID)
+      case Join(target, node, hop) =>
+      case StateTables(hop, id, leaf, route, neighborhood) =>
+        joinHops += 1
+        if(id.toBase10 == firstNode) totalJoinHops = hop
+        if(totalJoinHops <= joinHops && totalJoinHops != 0 && !sentInitial)
+        {
+          master ! Initialized(ID)
+          sentInitial = true
+        }
       case x => /* do nothing */
     }
     return PastryMessage(next, message)

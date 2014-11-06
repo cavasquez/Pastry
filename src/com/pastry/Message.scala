@@ -31,7 +31,7 @@ case class Route(key:BaseNValue, message:Message) extends Message
  * @param id	the id of the node
  * @param node	the node
  */
-case class Node[+T:ClassTag](id:BaseNValue, node:T) extends Message
+case class Node[T](id:BaseNValue, node:T) extends Message
 
 /**
  * Taken by com.pastry.PastryNode.pastryInit to obtain application-specific 
@@ -51,7 +51,7 @@ case class PastryInit(credentials:Credentials, application:Application) extends 
  * A special message sent by the requester to join a network with the receiver
  * in it.
  */
-case class Join(target:BaseNValue, node:Node[Any], hop:Int) extends Message
+case class Join(target:BaseNValue, node:Node[ActorRef], hop:Int) extends Message
 
 /**
  * A special message sent to the Requested of a join message. It contains how

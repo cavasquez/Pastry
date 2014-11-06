@@ -2,6 +2,7 @@ package com.simplepastry
 
 import com.pastry
 import akka.actor.ActorRef
+import com.pastry.BaseNValue
 
 /**
  * The messages for com.simplepastry
@@ -42,3 +43,8 @@ case class ReceivedSimple(id:BigInt, hop:Int) extends Message
  * Indicates that Master should print the total messages sent/received
  */
 case class PrintTotalMessages() extends Message
+
+/**
+ * Indicates that a node has been initialized
+ */
+case class Initialized(id:BaseNValue) extends Message

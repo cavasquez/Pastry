@@ -108,6 +108,8 @@ class NeighborhoodSet[T](parentID:BaseNValue, b:Int = 4)
     return node
   }
   
+  def toList():List[Node[T]] = table.toList
+  
   def +=(that:Node[T]):NeighborhoodSet.this.type = { insert(that); return this }
   
   def -=(that:Node[T]):NeighborhoodSet.this.type = { remove(that); return this } 

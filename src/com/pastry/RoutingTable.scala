@@ -85,7 +85,7 @@ class RoutingTable[T:ClassTag](val parentID:BaseNValue, b:Int = 4, n:Int = 10, o
     var row = offset + prefix
     var col:Int = 0
     var inserted:Boolean = true
-    
+   
     /* Check to see if there are a differing number of digits. If this is the
      * case, "imagine" leading zeroes and match those digits according to the
      * number of rows available. */
@@ -113,7 +113,14 @@ class RoutingTable[T:ClassTag](val parentID:BaseNValue, b:Int = 4, n:Int = 10, o
       /* Node fits, set it level with the number of digits in ownID into col 0 */
       else col = 0
     }
-    else col = id.nextDigit(n = prefix)
+    /* We can't add ourselves to the table */
+    else if(id != parentID) col = id.nextDigit(n = prefix)
+    else
+    {
+      /* Attempting to insert the same id. Set row and col to an existing node */
+      row = rowSize - 1 
+      col = ownID.nextDigit(n = ownID.numOfDigits()-1)
+    }
     if(table(row)(col) == null) table(row)(col) = new Node(id, node) 
     else inserted = false
     return inserted
@@ -253,7 +260,7 @@ class RoutingTable[T:ClassTag](val parentID:BaseNValue, b:Int = 4, n:Int = 10, o
     {
       for(j <- 0 until table(i).size)
       {
-        if(table(i) != null && table(i)(j).id.numOfDigits(base = id.base) > largestDigit) largestDigit = table(i)(j).id.numOfDigits(base = id.base)
+        if(table(i) != null && table(i)(j) != null && table(i)(j).id != parentID && table(i)(j).id.numOfDigits(base = id.base) > largestDigit) largestDigit = table(i)(j).id.numOfDigits(base = id.base)
       }
     }
     
@@ -266,14 +273,17 @@ class RoutingTable[T:ClassTag](val parentID:BaseNValue, b:Int = 4, n:Int = 10, o
       for(j <- 0 until table(i).size)
       {
         /* Compensate for varying digit sizes */
-        if(table(i)(j).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
-        else offset = largestDigit - table(i)(j).id.numOfDigits(base = id.base)
-        
-        if(table(i) != null) curMatchingPrefix = id.longestMatchingPrefix(table(i)(j).id) + offset
-        if(curMatchingPrefix > longestMatchingPrefix)
+        if(table(i) != null && table(i)(j) != null)
         {
-          longestMatchingPrefix = curMatchingPrefix
-          node = table(i)(j)
+          if(table(i)(j).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
+          else offset = largestDigit - table(i)(j).id.numOfDigits(base = id.base)
+          
+          curMatchingPrefix = id.longestMatchingPrefix(table(i)(j).id) + offset
+          if(curMatchingPrefix > longestMatchingPrefix)
+          {
+            longestMatchingPrefix = curMatchingPrefix
+            node = table(i)(j)
+          }
         }
       }
     }

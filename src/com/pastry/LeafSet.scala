@@ -202,26 +202,33 @@ class LeafSet[T](parentID:BaseNValue, b:Int = 4)
     {
       /* First, look in smaller */
       /* Compensate for varying digit sizes */
-      if(smaller(i).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
-      else offset = largestDigit - smaller(i).id.numOfDigits(base = id.base)
-      
-      if(smaller(i) != null) curMatchingPrefix = id.longestMatchingPrefix(smaller(i).id) + offset
-      if(curMatchingPrefix > longestMatchingPrefix)
+      if(smaller(i) != null)
       {
-        longestMatchingPrefix = curMatchingPrefix
-        node = smaller(i)
+        if(smaller(i).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
+        else offset = largestDigit - smaller(i).id.numOfDigits(base = id.base)
+      
+        curMatchingPrefix = id.longestMatchingPrefix(smaller(i).id) + offset
+        if(curMatchingPrefix > longestMatchingPrefix)
+        {
+          longestMatchingPrefix = curMatchingPrefix
+          node = smaller(i)
+        } 
       }
+      
       
       /* Next, look in larger */
       /* Compensate for varying digit sizes */
-      if(larger(i).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
-      else offset = largestDigit - larger(i).id.numOfDigits(base = id.base)
-      
-      if(larger(i) != null) curMatchingPrefix = id.longestMatchingPrefix(larger(i).id) + offset
-      if(curMatchingPrefix > longestMatchingPrefix)
+      if(larger(i) != null)
       {
-        longestMatchingPrefix = curMatchingPrefix
-        node = larger(i)
+        if(larger(i).id.numOfDigits(base = id.base) <= id.numOfDigits(base = id.base)) offset = largestDigit - id.numOfDigits(base = id.base)
+        else offset = largestDigit - larger(i).id.numOfDigits(base = id.base)
+        
+        curMatchingPrefix = id.longestMatchingPrefix(larger(i).id) + offset
+        if(curMatchingPrefix > longestMatchingPrefix)
+        {
+          longestMatchingPrefix = curMatchingPrefix
+          node = larger(i)
+        }
       }
     }
     return node

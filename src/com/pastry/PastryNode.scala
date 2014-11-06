@@ -4,6 +4,7 @@ import akka.actor.Actor
 import scala.collection.mutable.ArrayBuffer
 import akka.actor.ActorRef
 import scala.collection.immutable.IndexedSeq
+import akka.event.Logging
 
 /**
  * @param nodeID 		The id of this node
@@ -17,7 +18,7 @@ import scala.collection.immutable.IndexedSeq
  * @param firstNode		The first node that this node must contact
  * @param neighbor		The list of neighbors this node can contact
  */
-abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:Int = 16, firstNode:BigInt, neighbor:List[Node[ActorRef]]) extends Actor
+abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:Int = 16, firstNode:BigInt, initNeighbors:List[Node[ActorRef]]) extends Actor
 {
   /* L:ist of this nodes neighbors */
   protected val ID:BaseNValue = new BaseNValue(nodeID, base)
@@ -26,15 +27,17 @@ abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:
   protected val neighborhood:NeighborhoodSet[ActorRef] = new NeighborhoodSet(ID, b)
   protected val firstTarget = new BaseNValue(firstNode, base)
   
+  /* Logger */
+  var log = Logging(context.system, this)
+  
   def receive =
   {
     case Route(key, message) => route(key, PastryMessage(key, message))
-    case Join(target, node:Node[ActorRef], hop) => join(target, node, hop)
+    case Join(target, node, hop) => join(target, node, hop)
     case PastryInit(cred, app) => pastryInit(cred, app)
     case StateTables(hop, nodeID, leaf, route, neighborhood) => stateTables(hop, nodeID, leaf, route, neighborhood)
     case UpdateTables(hop, nodeID, leaf, route, neighborhood) => updateTables(hop, nodeID, leaf, route, neighborhood)
-    case PastryMessage(key, mssg) => deliver(key, mssg)
-    case y => /* do nothing */
+    case y => println(ID + " received unknown message " + y)
   }
   
   /**
@@ -99,6 +102,8 @@ abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:
    */
   private[pastry] def pastryInit(cred:Credentials, app:Application):BaseNValue =
   {
+    /* Add neighbors to neighborhood */
+    initNeighbors.foreach(neighborhood += _)
     /* Assume that NeighborhoodSet already has some values to begin with. */
     var firstNeighbor = neighborhood.findLongestMatchingPrefix(this.ID)
     if(firstNeighbor != null) firstNeighbor.node ! Join(firstTarget, Node(this.ID, self), 0)
@@ -119,9 +124,10 @@ abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:
     {
       var nextHop = findRoute(key)
       var newMssg = forward(mssg.key, nextHop.id, mssg.message)
+      if(newMssg.key != null && nextHop != null) println(ID + " routing " + key + " to " + nextHop.id)
       if(newMssg.key != null && nextHop != null) nextHop.node ! Route(newMssg.key, newMssg.message)
     }
-    else self ! mssg
+    else deliver(key, mssg)
   }
   
   /**
@@ -137,10 +143,14 @@ abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:
     }
     
     /* Send requester this nodes tables */
-    node.node ! stateTables(hop + 1, ID, leaf, route, neighborhood)
+    node.node ! StateTables(hop + 1, ID, leaf, route, neighborhood)
+    
     /* Now add the new node to this nodes' tables */
     leaf += node
     route += node
+    
+    /* Let sub-class know about join */
+    forward(target, null, Join(target, node, hop))
   }
   
   /**
@@ -155,11 +165,14 @@ abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:
   {
     /* Update this nodes tables. Note that I process this message instead of
      * sending it to myself via UpdateTables because I would end up sending
-     * my neighbor the data before the update */
+     * my neighbor stale data before the update */
     this.updateTables(hop, nodeID, leaf, route, neighborhood)
     
     /* Send this nodes tables to neighbors so they can update themselves */
     sender ! UpdateTables(hop, this.ID, this.leaf, this.route, this.neighborhood)
+        
+    /* Let sub-class know about join */
+    forward(ID, null, StateTables(hop, nodeID, leaf, route, neighborhood))
   }
   
   private def updateTables(hop:Int, nodeID:BaseNValue, leaf:LeafSet[ActorRef], route:RoutingTable[ActorRef], neighborhood:NeighborhoodSet[ActorRef]):Unit =
@@ -179,18 +192,14 @@ abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:
     
     if(hop == 1)
     {
-      /* If node was 1 hop away (closest node) use its neighborhood set */
-      for(i:Int <- 0 until neighborhood.size)
-      {
-        if(neighborhood.get(i) != null) this.neighborhood += neighborhood.get(i)
-      }
+      neighborhood.toList.filter(_ != null)
+      .foreach(this.neighborhood += _)
     }
     
     /* update routing table */
-    for(i:Int <- 0 until route.table(hop).size) 
-    {
-      if(route.table(hop)(i) != null) this.route += route.table(hop)(i)
-    }
+    var limit = if(route.table.size <= hop) route.table.size - 1 else hop
+    route.table(limit).toList.filter(_ != null)
+    .foreach(this.route += _)
   }
   
   /**

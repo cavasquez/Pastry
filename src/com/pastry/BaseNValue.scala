@@ -48,7 +48,8 @@ class BaseNValue(protected val base10Val:BigInt, val base:Int = 10)
 	 */
 	def logBase(n:BigInt, x:BigInt):Double =
 	{
-	  if(n < 1 || x < 1) throw new IllegalArgumentException("Arguments must be greater than 0")
+	  if(n > 0 && x == 0) return 0
+	  else if(n < 1 || x < 1) throw new IllegalArgumentException("Arguments must be greater than 0")
 	  else Math.log(x.doubleValue)/Math.log(n.doubleValue)
 	}
 	
@@ -105,7 +106,7 @@ class BaseNValue(protected val base10Val:BigInt, val base:Int = 10)
 	  
 	  val length = numOfDigits(value, base)
 	  var i:Int = length - n
-	  if(i < 1) throw new IllegalArgumentException("n is greater than or equal to the number of digits in value")
+	  if(i < 1) throw new IllegalArgumentException("n(%s) is greater than or equal to the number of digits(%s) in value(%s)".format(n, length, new BaseNValue(value, base)))
 	  var power:Long = Math.pow(base, i).toLong
 	  var digit = value % power
 	  power = Math.pow(base, i-1).toLong
@@ -155,5 +156,5 @@ class BaseNValue(protected val base10Val:BigInt, val base:Int = 10)
 	
 	def ==(that:BaseNValue):Boolean = base10Val == that.base10Val
 	
-	def !=(that:BaseNValue):Boolean = base10Val != that.base10Val
+	def !=(that:BaseNValue):Boolean = null != that && base10Val != that.base10Val
 }
