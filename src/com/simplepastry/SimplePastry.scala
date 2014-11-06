@@ -30,6 +30,7 @@ class SimplePastry(nodeID:BigInt, n:Int, base:Int, b:Int, l:Int, firstNode:BigIn
     mssg match
     {
       case Simple(hop) =>
+        log.debug("%s received simple".format(ID))
         master ! ReceivedSimple(nodeID, hop)
       case x => println(ID + " received " + x)/* do nothing */
     }

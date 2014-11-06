@@ -69,7 +69,6 @@ class BootStrapper(n:Int = 10, base:Int = 4, l:Int = 16, messageCount:Int)
     var to:BigInt = 0
     var from:BigInt = 0
     var same = true
-    //nodes.toList.foreach(println(_))
     for(i <- 0 until messageCount)
     {
       while(same)
@@ -79,7 +78,6 @@ class BootStrapper(n:Int = 10, base:Int = 4, l:Int = 16, messageCount:Int)
         if(to != from) same = false
       }
       same = true
-      println("Sending from " + from + " to " + to)
       master ! StartSend(from, to)
     }
     println("messages sent")

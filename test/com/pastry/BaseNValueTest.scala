@@ -38,17 +38,6 @@ class BaseNValueTest extends AssertionsForJUnit
 	  assertEquals(3, test.numOfDigits(100, 10))
 	  assertEquals(1, test.numOfDigits(1, 10))
 	  assertEquals(4, test.numOfDigits(10, 2))
-	  
-	  try 
-	  { 
-		  assert(null, test.numOfDigits(0, 10))
-		  fail("Can't calculate the number of digits in 0")
-	  }
-	  catch 
-	  {
-      	case e:IllegalArgumentException =>
-      	case _:Throwable => fail("This should have thrown an IllegalArgumentException")
-	  }
 	}
 	
 	@Test
@@ -151,5 +140,16 @@ class BaseNValueTest extends AssertionsForJUnit
       	case e:IllegalArgumentException =>
       	case _:Throwable => fail("This should have thrown an IllegalArgumentException")
 	  }
+	}
+	
+	@Test
+	def notEqualTest() =
+	{
+	  var a = new BaseNValue(5,10)
+	  var b = new BaseNValue(10,10)
+	  var c = new BaseNValue(5,10)
+	  assertEquals(true, a != b)
+	  assertEquals(false, a != c)
+	  assertEquals(true, a != null)
 	}
 }

@@ -7,4 +7,4 @@ object Main
     val boot = new BootStrapper(10, 16, 16, 100)
     boot.start
   }
-}
+} 

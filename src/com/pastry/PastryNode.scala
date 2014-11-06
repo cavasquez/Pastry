@@ -124,10 +124,9 @@ abstract class PastryNode(nodeID:BigInt, n:Int = 10, base:Int = 4, b:Int = 4, l:
     {
       var nextHop = findRoute(key)
       var newMssg = forward(mssg.key, nextHop.id, mssg.message)
-      if(newMssg.key != null && nextHop != null) println(ID + " routing " + key + " to " + nextHop.id)
       if(newMssg.key != null && nextHop != null) nextHop.node ! Route(newMssg.key, newMssg.message)
     }
-    else deliver(key, mssg)
+    else deliver(mssg.key, mssg.message)
   }
   
   /**
